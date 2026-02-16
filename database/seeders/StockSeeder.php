@@ -34,6 +34,15 @@ class StockSeeder extends Seeder
             16 => 1000,  // Garam (1 kg)
             17 => 500,   // Air Lemon (500 gram)
             18 => 3000,  // Parutan Kelapa (3 kg)
+            19 => 15,  // mika ukuran 14
+            20 => 15,  // mika ukuran 16
+            21 => 15,  // mika ukuran 18
+            22 => 15,   // mika ukuran 20
+            23 => 15,  // mika ukuran 22
+            24 => 15,  // mika ukuran 24
+            25 => 15,  // kardus kue ukuran 16
+            26 => 15,  // Kardus Kue ukuran 26
+            27 => 200,  // plastik kue 
         ];
 
         // Eksekusi update data

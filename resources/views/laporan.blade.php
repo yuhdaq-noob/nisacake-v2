@@ -10,14 +10,7 @@
             MIKA KUE,
             PLASTIK "termasuk ukuran" nanti pakai id ke untuk di produk sesuai id
           }
-    TODO: TAMBAHKAN TABEL OVERHEADS DATABASE:
-        -GAS           {kapasitas gas/daya tahan gas(menit), harga gas per tube, },
-        -LISTRIK       {harga per kwh, rata rata pemakaian listrik per unit produk},
-        -TENAGA KERJA  {hitungan per jam},),
 
-    TODO: HAPUS UNIT DI MATERIAL DATABASE,
-
-    TODO: NAMBAH SEEDER TABEL OVERHEAD DATABASE + SEEDER MATERIALS DATABASE PACKAGING,
 
     TODO: PISAHKAN CATEGORY PACKAGING DAN RAW MATERIAL DI MATERIALS DATABASE,
 
@@ -113,7 +106,6 @@
                   <tfoot>
                       <tr class="font-bold bg-slate-50">
                           <td colspan="4" class="text-right">TOTAL:</td>
-
                           <td id="tableTotalOmzet" class="text-right">Rp 0</td>
                           <td id="tableTotalHPP" class="text-right">Rp 0</td>
                           <td id="tableTotalProfit" class="text-right text-emerald-700">Rp 0</td>

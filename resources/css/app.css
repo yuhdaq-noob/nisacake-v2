@@ -99,6 +99,10 @@ a {
 }
 
 .table-dark-header th {
-    background-color: #0f172a;
-    color: #ffffff;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: #4b5563;
+    background-color: #f3f4f6;
+    font-weight: 700;
 }
