@@ -17,9 +17,9 @@ class MaterialFactory extends Factory
         return [
             'name' => fake()->words(2, true),
             'unit' => 'gram',
-            'unit_baku' => 'kg',
+            'base_unit' => 'kg',
             'price_per_unit' => 100,
-            'price_per_unit_baku' => 100000,
+            'price_per_base_unit' => 100000,
             'current_stock' => 1000,
             'min_stock_level' => 10,
         ];

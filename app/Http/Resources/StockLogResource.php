@@ -5,8 +5,10 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+// Resource untuk format data log stok
 class StockLogResource extends JsonResource
 {
+    // Mengubah data model menjadi array untuk response API
     public function toArray(Request $request): array
     {
         return [
@@ -15,8 +17,8 @@ class StockLogResource extends JsonResource
             'material' => [
                 'id' => $this->material?->id,
                 'name' => $this->material?->name,
-                'unit_baku' => $this->material?->unit_baku,
-                'price_per_unit_baku' => $this->material?->price_per_unit_baku,
+                'base_unit' => $this->material?->base_unit,
+                'price_per_base_unit' => $this->material?->price_per_base_unit,
             ],
             'type' => $this->type,
             'amount' => $this->amount,

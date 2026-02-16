@@ -10,23 +10,26 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Log;
 
+
+// Controller untuk manajemen stok bahan baku
 class StockController extends Controller
 {
+    // Injeksi service stok ke controller
     public function __construct(
         private StockService $stockService
     ) {}
 
-    /**
-     * Store new stock addition
-     */
+    // Menambah stok baru ke bahan baku
     public function store(StoreStockRequest $request): JsonResponse
     {
         try {
+            // Tambah stok via service
             $material = $this->stockService->addStock($request->validated());
 
+            // Kembalikan response sukses beserta stok terbaru
             return response()->json([
                 'status' => 'success',
-                'message' => 'Stock added successfully.',
+                'message' => 'Stok berhasil ditambah.',
                 'data' => [
                     'material_id' => $material->id,
                     'current_stock' => $material->current_stock,
@@ -34,18 +37,17 @@ class StockController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            Log::error('Stock addition failed: '.$e->getMessage());
+            // Jika gagal, log error dan kembalikan response error
+            Log::error('Gagal menambah stok: '.$e->getMessage());
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to add stock.',
+                'message' => 'Gagal menambah stok.',
             ], 500);
         }
     }
 
-    /**
-     * Get stock logs history
-     */
+    // Mengambil histori log stok (terbaru 50 data)
     public function index(): AnonymousResourceCollection
     {
         $logs = StockLog::with('material')
@@ -53,6 +55,7 @@ class StockController extends Controller
             ->take(50)
             ->get();
 
+        // Kembalikan dalam bentuk resource collection
         return StockLogResource::collection($logs);
     }
 }

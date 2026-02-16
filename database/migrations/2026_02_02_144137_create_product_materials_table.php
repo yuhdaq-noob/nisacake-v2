@@ -1,7 +1,6 @@
 <?php
 
-// FIXME: PERHITUNGAN
-
+// FIXME: TABEL PRODUCT_MATERIALS
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -22,10 +21,12 @@ return new class extends Migration
             // Kunci ke tabel Materials (Bahannya apa?)
             $table->foreignId('material_id')->constrained('materials')->onDelete('cascade');
 
-            // Inti BOM: Berapa banyak yang dibutuhkan?
-            $table->integer('quantity_needed'); // misal: 200 (gram)
+            // Berapa banyak yang dibutuhkan?
+            $table->integer('quantity_needed');
 
             $table->timestamps();
+
+            
         });
     }
 

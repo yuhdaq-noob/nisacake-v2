@@ -9,50 +9,41 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
+
+// Controller untuk manajemen produk
 class ProductController extends Controller
 {
-    /**
-     * Get all products with their materials
-     */
+    // Mengambil semua produk beserta bahan bakunya
     public function index(): AnonymousResourceCollection
     {
-        $products = Product::with('materials')->get();
-
-        return ProductResource::collection($products);
+        $products = Product::with('materials')->get(); // Ambil produk beserta relasi materials
+        return ProductResource::collection($products); // Kembalikan dalam bentuk resource collection
     }
 
-    /**
-     * Show a single product
-     */
+    // Menampilkan detail satu produk beserta bahan bakunya
     public function show(Product $product): ProductResource
     {
         return new ProductResource($product->load('materials'));
     }
 
-    /**
-     * Store a new product
-     */
+    // Menyimpan produk baru ke database
     public function store(StoreProductRequest $request): JsonResponse
     {
-        $product = Product::create($request->validated());
-
+        $product = Product::create($request->validated()); // Simpan produk baru
         return response()->json([
             'status' => 'success',
-            'message' => 'Product created successfully.',
+            'message' => 'Produk berhasil dibuat.',
             'data' => new ProductResource($product->load('materials')),
         ], 201);
     }
 
-    /**
-     * Update a product including overhead cost
-     */
+    // Mengupdate data produk (termasuk biaya overhead)
     public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        $product->update($request->validated());
-
+        $product->update($request->validated()); // Update data produk
         return response()->json([
             'status' => 'success',
-            'message' => 'Product updated successfully.',
+            'message' => 'Produk berhasil diupdate.',
             'data' => new ProductResource($product->load('materials')),
         ], 200);
     }

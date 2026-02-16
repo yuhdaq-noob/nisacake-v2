@@ -13,6 +13,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\StockLog;
+use App\Services\OverheadService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -124,23 +125,25 @@ class OrderService
      */
     private function calculateRealTimeHPP(Product $product, int $quantity): float
     {
-        $hppPerUnit = 0.0;
+        $materialHppPerUnit = 0.0;
 
         foreach ($product->materials as $material) {
             $quantityNeeded = (float) $material->pivot->quantity_needed;
-            $currentPrice = (float) ($material->price_per_unit_baku ?? $material->price_per_unit ?? 0);
+            $currentPrice = (float) ($material->price_per_unit ?? $material->price_per_base_unit ?? 0);
 
-            // FIXME: PERHITUNGAN
-            // HPP/unit = Σ(quantity_needed × price_per_unit_baku)
-            // FIXME: TIDAK DIPAKAI
-            // Saat ini quantity_needed dianggap sudah “satuannya cocok” dengan price_per_unit_baku.
-            // Jika quantity_needed tersimpan dalam unit resep (gram/ml) tetapi unit_baku adalah (kg/liter),
-            // konversi unit belum diterapkan di sini.
-
-            $hppPerUnit += $quantityNeeded * $currentPrice;
+            $materialHppPerUnit += $quantityNeeded * $currentPrice;
         }
 
-        $hppPerUnit += (float) ($product->overhead_cost_per_unit ?? 0);
+        // Hitung overhead per unit
+        // Jika produk memiliki overhead_cost_per_unit > 0, gunakan sebagai override per produk.
+        // Jika tidak, gunakan konfigurasi global dari tabel overhead_settings.
+        $overheadPerUnit = (float) ($product->overhead_cost_per_unit ?? 0);
+
+        if ($overheadPerUnit <= 0) {
+            $overheadPerUnit = OverheadService::calculateOverheadPerUnit();
+        }
+
+        $hppPerUnit = $materialHppPerUnit + $overheadPerUnit;
 
         return $hppPerUnit * $quantity;
     }

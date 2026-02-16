@@ -15,16 +15,16 @@ class MaterialPriceLog extends Model
         'user_id',
         'old_price_per_unit',
         'new_price_per_unit',
-        'old_price_per_unit_baku',
-        'new_price_per_unit_baku',
-        'unit_baku',
+        'old_price_per_base_unit',
+        'new_price_per_base_unit',
+        'base_unit',
     ];
 
     protected $casts = [
         'old_price_per_unit' => 'decimal:2',
         'new_price_per_unit' => 'decimal:2',
-        'old_price_per_unit_baku' => 'decimal:2',
-        'new_price_per_unit_baku' => 'decimal:2',
+        'old_price_per_base_unit' => 'decimal:2',
+        'new_price_per_base_unit' => 'decimal:2',
     ];
 
     public function material(): BelongsTo

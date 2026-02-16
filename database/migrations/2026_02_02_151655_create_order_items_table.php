@@ -1,6 +1,6 @@
 <?php
 
-// FIXME: PERHITUNGAN
+// FIXME: TABEL ORDER_ITEMS
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,14 +15,15 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
-
             // Link ke tabel Orders
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-
             // Link ke tabel Products
             $table->foreignId('product_id')->constrained('products');
 
             $table->integer('quantity'); // Beli berapa biji?
+
+            $table->decimal('price_per_unit', 10, 2)->default(0); // Harga per unit saat order dibuat
+            $table->decimal('hpp_per_unit', 10, 2)->default(0)->comment('Historical HPP per unit at order creation time');
 
             $table->timestamps();
         });

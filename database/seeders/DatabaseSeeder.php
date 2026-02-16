@@ -1,5 +1,7 @@
 <?php
 
+// NOTE: INDUK SEEDER
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -12,10 +14,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        // 1. Matikan pengecekan Foreign Key agar bisa reset tabel
+        // Matikan foreign key agar bisa reset tabel
         Schema::disableForeignKeyConstraints();
 
-        // 2. Kosongkan SEMUA tabel (Reset bersih)
+        // Kosongkan semua tabel
         DB::table('order_items')->truncate();
         DB::table('orders')->truncate();
         DB::table('product_materials')->truncate();
@@ -24,28 +26,22 @@ class DatabaseSeeder extends Seeder
         DB::table('stock_logs')->truncate();
         DB::table('material_price_logs')->truncate();
         DB::table('personal_access_tokens')->truncate();
-        DB::table('users')->truncate(); // Reset user juga biar tidak duplikat
+        DB::table('users')->truncate();
 
-        // 3. Nyalakan lagi Foreign Key
+        // Aktifkan kembali foreign key
         Schema::enableForeignKeyConstraints();
 
-        // ==========================================
-        // 0. DATA USER (OWNER) - PENTING!
-        // Gunakan `OwnerSeeder` untuk membuat akun owner
-        // ==========================================
+        // Buat akun owner jika belum ada
         $this->call([
-            OwnerSeeder::class, // Cek & buat user owner jika belum ada
+            OwnerSeeder::class,
         ]);
 
-        // Pindahkan seed master-data (materials, products, product_materials)
-        // ke `MasterDataSeeder` untuk menjaga konsistensi dan
-        // menghindari duplikasi. MasterDataSeeder dibuat di file terpisah.
+        // Isi data master dan dummy
         $this->call([
+            OverheadSettingSeeder::class,
             MasterDataSeeder::class,
             OrderSeeder::class,
-            // StockSeeder akan mengisi stok awal (dummy). Hapus dari daftar
-            // jika tidak ingin ada stok awal.
-            StockSeeder::class,
+            StockSeeder::class, // Isi stok awal (hapus jika tidak perlu)
         ]);
     }
 }

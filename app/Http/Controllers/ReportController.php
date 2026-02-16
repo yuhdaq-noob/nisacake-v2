@@ -12,36 +12,38 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Maatwebsite\Excel\Facades\Excel;
 
+
+// Controller untuk laporan (export dan tampilan data order)
 class ReportController extends Controller
 {
-    /**
-     * Get all orders with their items for reporting
-     */
+    // Mengambil semua order beserta itemnya untuk keperluan laporan
     public function index(): AnonymousResourceCollection
     {
+        // Ambil semua order beserta relasi items dan produk
         $orders = Order::with('items.product')
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Kembalikan dalam bentuk resource collection
         return OrderResource::collection($orders);
     }
 
+    // Export data order ke Excel atau PDF
     public function export(Request $request)
     {
-        $format = $request->query('format', 'excel');
-        // FIXME: TIDAK DIPAKAI
+        $format = $request->query('format', 'excel'); // Format export (excel/pdf)
+        // TODO: BELUM DI IMPLEMENTASIKAN
         // period & search sudah dibaca, tapi belum diterapkan untuk filter query export.
-        $period = $request->query('period', 'all');
-        $search = $request->query('search', '');
+        $period = $request->query('period', 'all'); // Periode filter (belum dipakai)
+        $search = $request->query('search', '');    // Kata kunci pencarian (belum dipakai)
 
-        // Ambil data order sesuai filter (bisa disesuaikan dengan filter waktu/search)
+        // Ambil data order beserta relasi items dan produk
         $orders = Order::with('items.product')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Filter data jika perlu (implementasi filter sesuai kebutuhan frontend)
-        // ... (bisa tambahkan filter period & search di sini)
 
+        // Export ke PDF jika format=pdf, selain itu ke Excel
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('exports.laporan_pdf', [
                 'orders' => $orders,

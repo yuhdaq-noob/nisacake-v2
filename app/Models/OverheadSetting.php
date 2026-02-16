@@ -12,10 +12,9 @@ class OverheadSetting extends Model
     protected $table = 'overhead_settings';
 
     protected $fillable = [
+        'name',
         'key',
         'value',
         'unit',
     ];
-
-    public $timestamps = false;
 }

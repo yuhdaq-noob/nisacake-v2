@@ -50,10 +50,10 @@ function parseRupiahInput(value) {
 
 function resolveDisplayPrice(mat) {
     const unitValue = (mat.unit || "").trim();
-    const baseUnitValue = (mat.unit_baku || "").trim();
+    const baseUnitValue = (mat.base_unit || "").trim();
     const hasBasePrice =
-        mat.price_per_unit_baku !== null &&
-        mat.price_per_unit_baku !== undefined;
+        mat.price_per_base_unit !== null &&
+        mat.price_per_base_unit !== undefined;
     const baseUnitConfig = getBaseUnitConfig(unitValue);
     const shouldDeriveBase =
         !hasBasePrice ||
@@ -62,7 +62,7 @@ function resolveDisplayPrice(mat) {
 
     let displayUnit = baseUnitValue || unitValue;
     let displayPrice = hasBasePrice
-        ? mat.price_per_unit_baku
+        ? mat.price_per_base_unit
         : mat.price_per_unit;
 
     if (shouldDeriveBase && baseUnitConfig) {
@@ -380,9 +380,13 @@ function attachPriceEditHandler() {
             }
 
             const rawValue = input.value.trim();
-            const pricePerBaku = parseRupiahInput(rawValue);
+            const pricePerBaseUnit = parseRupiahInput(rawValue);
 
-            if (!rawValue || Number.isNaN(pricePerBaku) || pricePerBaku <= 0) {
+            if (
+                !rawValue ||
+                Number.isNaN(pricePerBaseUnit) ||
+                pricePerBaseUnit <= 0
+            ) {
                 alert("Harga harus berupa angka dan lebih dari 0.");
                 return;
             }
@@ -400,7 +404,7 @@ function attachPriceEditHandler() {
                             ...getAuthHeaders(),
                         },
                         body: JSON.stringify({
-                            price_per_unit_baku: pricePerBaku,
+                            price_per_base_unit: pricePerBaseUnit,
                         }),
                     },
                 );
@@ -480,9 +484,9 @@ async function loadPriceHistory() {
 
         let html = "";
         logs.forEach((log) => {
-            const unitBaku = log.unit_baku || "";
-            const oldPrice = log.old_price_per_unit_baku ?? 0;
-            const newPrice = log.new_price_per_unit_baku ?? 0;
+            const baseUnit = log.base_unit || "";
+            const oldPrice = log.old_price_per_base_unit ?? 0;
+            const newPrice = log.new_price_per_base_unit ?? 0;
             const date = new Date(log.created_at).toLocaleString("id-ID", {
                 day: "numeric",
                 month: "short",
@@ -498,11 +502,11 @@ async function loadPriceHistory() {
                         <div class="font-semibold text-slate-900 truncate">${name}</div>
                         <p class="mt-0.5 text-xs text-slate-500">
                             <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700 mr-1">Sebelum</span>
-                            Rp ${formatNumber(oldPrice)}/${unitBaku}
+                            Rp ${formatNumber(oldPrice)}/${baseUnit}
                         </p>
                         <p class="mt-0.5 text-xs text-slate-500">
                             <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-700 mr-1">Sesudah</span>
-                            Rp ${formatNumber(newPrice)}/${unitBaku}
+                            Rp ${formatNumber(newPrice)}/${baseUnit}
                         </p>
                     </div>
                     <div class="shrink-0 text-right text-xs text-slate-400">${date}</div>

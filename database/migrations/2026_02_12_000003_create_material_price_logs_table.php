@@ -17,9 +17,9 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->decimal('old_price_per_unit', 10, 2)->nullable();
             $table->decimal('new_price_per_unit', 10, 2)->nullable();
-            $table->decimal('old_price_per_unit_baku', 10, 2)->nullable();
-            $table->decimal('new_price_per_unit_baku', 10, 2)->nullable();
-            $table->string('unit_baku')->nullable();
+            $table->decimal('old_price_per_base_unit', 10, 2)->nullable();
+            $table->decimal('new_price_per_base_unit', 10, 2)->nullable();
+            $table->string('base_unit')->nullable();
             $table->timestamps();
         });
     }

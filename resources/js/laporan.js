@@ -142,7 +142,8 @@ function renderTable(data) {
         document.getElementById("tableTotalProfit").innerText = "Rp 0";
         return;
     }
-
+         //FIXME: PERHITUNGAN
+         
     data.forEach((order) => {
         const omzetVal = Number(order.total_omzet) || 0;
         const hppVal = Number(order.total_hpp) || 0;

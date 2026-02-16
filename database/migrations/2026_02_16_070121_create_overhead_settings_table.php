@@ -1,12 +1,9 @@
 <?php
 
-// FIXME: PERHITUNGAN
-// FIXME: TIDAK DIPAKAI
-// Kolom production_cost ada, tapi saat ini tidak dipakai untuk HPP otomatis maupun laporan.
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+
 
 return new class extends Migration
 {
@@ -15,8 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->integer('production_cost')->default(0);
+        Schema::create('overhead_settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('key');
+            $table->decimal('value', 15, 2);
+            $table->string('unit');
+            $table->timestamps();
         });
     }
 
@@ -25,8 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('overhead_settings');
     }
 };

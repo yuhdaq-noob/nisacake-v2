@@ -18,16 +18,16 @@ class Material extends Model
     protected $fillable = [
         'name',
         'unit',
-        'unit_baku',
+        'base_unit',
         'price_per_unit',
-        'price_per_unit_baku',
+        'price_per_base_unit',
         'current_stock',
         'min_stock_level',
     ];
 
     protected $casts = [
         'price_per_unit' => 'decimal:2',
-        'price_per_unit_baku' => 'decimal:2',
+        'price_per_base_unit' => 'decimal:2',
         'current_stock' => 'integer',
         'min_stock_level' => 'integer',
     ];

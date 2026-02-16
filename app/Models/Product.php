@@ -18,8 +18,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'selling_price',
-        // FIXME: TIDAK DIPAKAI
-        // production_cost saat ini tidak ikut perhitungan HPP otomatis & laporan (HPP pakai BOM + overhead_cost_per_unit).
+        // FIXME: LOL
         'production_cost',
         'overhead_cost_per_unit',
         'description',

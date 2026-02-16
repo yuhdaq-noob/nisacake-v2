@@ -8,21 +8,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+
+// Controller untuk proses login dan logout user
 class LoginController extends Controller
 {
-    /**
-     * Display the login form
-     */
+    // Menampilkan form login
     public function index(): View
     {
         return view('login');
     }
 
-    /**
-     * Authenticate user credentials
-     */
+    // Autentikasi user (cek username & password)
     public function authenticate(Request $request): JsonResponse
     {
+        // Validasi input login
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
@@ -30,31 +29,31 @@ class LoginController extends Controller
 
         $credentials = $request->only('username', 'password');
 
+        // Coba login dengan kredensial
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+            $request->session()->regenerate(); // Regenerasi session agar aman
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Login successful. Initializing...',
+                'message' => 'Login berhasil. Mengalihkan...',
                 'redirect' => route('kasir'),
             ]);
         }
 
+        // Jika gagal, kembalikan error
         return response()->json([
             'status' => 'error',
-            'message' => 'Invalid credentials provided.',
+            'message' => 'Username atau password salah.',
         ], 401);
     }
 
-    /**
-     * Log out the authenticated user
-     */
+    // Logout user yang sedang login
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        Auth::logout(); // Logout user
+        $request->session()->invalidate(); // Hapus session
+        $request->session()->regenerateToken(); // Regenerasi token CSRF
 
-        return redirect('/login');
+        return redirect('/login'); // Redirect ke halaman login
     }
 }

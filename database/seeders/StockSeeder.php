@@ -1,5 +1,7 @@
 <?php
 
+// NOTE: STOCK
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;

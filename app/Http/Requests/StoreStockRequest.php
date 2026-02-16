@@ -4,13 +4,16 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+// Request untuk validasi penambahan stok bahan baku
 class StoreStockRequest extends FormRequest
 {
+    // Mengizinkan semua user melakukan request ini
     public function authorize(): bool
     {
         return true;
     }
 
+    // Aturan validasi input stok
     public function rules(): array
     {
         return [
@@ -20,6 +23,7 @@ class StoreStockRequest extends FormRequest
         ];
     }
 
+    // Pesan error kustom untuk validasi
     public function messages(): array
     {
         return [

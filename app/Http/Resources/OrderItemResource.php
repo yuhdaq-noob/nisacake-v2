@@ -5,8 +5,10 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+// Resource untuk format data item order
 class OrderItemResource extends JsonResource
 {
+    // Mengubah data model menjadi array untuk response API
     public function toArray(Request $request): array
     {
         return [

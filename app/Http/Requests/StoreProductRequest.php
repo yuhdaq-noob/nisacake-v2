@@ -6,13 +6,16 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+// Request untuk validasi pembuatan produk baru
 class StoreProductRequest extends FormRequest
 {
+    // Mengizinkan semua user melakukan request ini
     public function authorize(): bool
     {
         return true;
     }
 
+    // Aturan validasi input produk
     public function rules(): array
     {
         return [
@@ -26,6 +29,7 @@ class StoreProductRequest extends FormRequest
         ];
     }
 
+    // Pesan error kustom untuk validasi
     public function messages(): array
     {
         return [
