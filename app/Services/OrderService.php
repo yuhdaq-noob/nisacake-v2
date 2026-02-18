@@ -21,81 +21,75 @@ use Illuminate\Support\Facades\Log;
 class OrderService
 {
     /**
-     * Create a new order with stock validation and deduction
+     * Create a new order with stock validation and deduction (immediate purchase)
+     * Status goes directly to COMPLETED since order is placed and confirmed immediately
      *
      * @throws InsufficientStockException
      * @throws MaterialNotFoundException
      */
     public function createOrder(array $data): Order
     {
-        // Calculate total needs for all items
         $totalNeeds = $this->calculateTotalNeeds($data['items']);
+        $shouldDeductStock = true;
+
+        return $this->createOrderWithValidation($data, $totalNeeds, $shouldDeductStock, OrderStatus::COMPLETED);
+    }
+
+    /**
+     * Create a pre-order without stock deduction (scheduled purchase)
+     *
+     * @throws MaterialNotFoundException
+     */
+    public function createPreOrder(array $data): Order
+    {
+        // Pre-order tidak perlu validasi stok, hanya validasi bahwa produk ada
+        $this->validateProductsExist($data['items']);
+
+        $totalNeeds = $this->calculateTotalNeeds($data['items']);
+        $shouldDeductStock = false;
+
+        return $this->createOrderWithValidation($data, $totalNeeds, $shouldDeductStock, OrderStatus::PRE_ORDER);
+    }
+
+    /**
+     * Internal method to create order with optional stock deduction
+     * Follows Single Responsibility: Handles order and item creation logic
+     *
+     * @throws InsufficientStockException
+     * @throws MaterialNotFoundException
+     */
+    private function createOrderWithValidation(
+        array $data,
+        array $totalNeeds,
+        bool $shouldDeductStock,
+        OrderStatus $status = OrderStatus::COMPLETED
+    ): Order {
         $materialIds = array_keys($totalNeeds);
 
-        // Create order in transaction
-        return DB::transaction(function () use ($data, $totalNeeds, $materialIds) {
+        return DB::transaction(function () use ($data, $totalNeeds, $materialIds, $shouldDeductStock, $status) {
             $materials = collect();
 
-            if (count($materialIds) > 0) {
+            // Only validate and lock materials if stock deduction is needed
+            if ($shouldDeductStock && count($materialIds) > 0) {
                 $materials = Material::whereIn('id', $materialIds)
                     ->lockForUpdate()
                     ->get()
                     ->keyBy('id');
 
-                // Validate stock availability for all materials using locked rows
                 $this->validateStockAvailability($materials, $totalNeeds);
             }
 
-            $totalPrice = 0;
-            $totalHPP = 0;
-            $orderItemsData = [];
+            // Calculate order items data (price, hpp)
+            [$totalPrice, $totalHPP, $orderItemsData] = $this->calculateOrderItemsData($data, $materials);
 
-            foreach ($data['items'] as $item) {
-                $product = Product::with('materials')->findOrFail($item['product_id']);
-
-                $subtotal = $product->selling_price * $item['quantity'];
-                $subhpp = $this->calculateRealTimeHPP($product, $item['quantity']);
-                $hppPerUnit = $subhpp / $item['quantity'];
-
-                $totalPrice += $subtotal;
-                $totalHPP += $subhpp;
-
-                $orderItemsData[] = [
-                    'product' => $product,
-                    'quantity' => $item['quantity'],
-                    'price' => $product->selling_price,
-                    'hpp_per_unit' => $hppPerUnit,
-                ];
-
-                // Deduct stock for each material
-                if ($product->materials->count() > 0) {
-                    foreach ($product->materials as $material) {
-                        $qtyNeeded = $material->pivot->quantity_needed * $item['quantity'];
-                        $lockedMaterial = $materials->get($material->id) ?? $material;
-
-                        // Decrement stock
-                        $lockedMaterial->decrement('current_stock', $qtyNeeded);
-
-                        // Log stock deduction
-                        StockLog::create([
-                            'material_id' => $material->id,
-                            'type' => StockLogType::OUT->value,
-                            'amount' => $qtyNeeded,
-                            'description' => "Production: {$product->name} ({$item['quantity']} units)",
-                        ]);
-                    }
-                }
-            }
-
-            // Create order
+            // Create order record
             $order = Order::create([
                 'customer_name' => $data['customer_name'],
-                // FIXME: TIDAK DIPAKAI
-                // order_date belum dipakai oleh UI (laporan memakai created_at->date).
                 'order_date' => now(),
-                'status' => OrderStatus::PENDING->value,
+                'status' => $status->value,
                 'total_price' => $totalPrice,
                 'total_hpp' => $totalHPP,
+                'scheduled_at' => $data['scheduled_at'] ?? null,
             ]);
 
             // Create order items
@@ -109,15 +103,157 @@ class OrderService
                 ]);
             }
 
+            // Deduct stock only if this is an immediate order
+            if ($shouldDeductStock) {
+                $this->deductStockForOrder($data, $materials);
+            }
+
+            // Log the order creation
             Log::channel('business')->info('Order created', [
                 'order_id' => $order->id,
                 'customer_name' => $order->customer_name,
+                'status' => $status->label(),
                 'total_price' => $order->total_price,
                 'total_hpp' => $order->total_hpp,
             ]);
 
             return $order;
         });
+    }
+
+    /**
+     * Execute pre-order: Convert PRE_ORDER to COMPLETED status with stock deduction
+     * Called when user clicks "Bayar" on scheduled order
+     *
+     * @throws InsufficientStockException
+     * @throws MaterialNotFoundException
+     */
+    public function executePreOrder(Order $preOrder): Order
+    {
+        // Validate that order is actually a pre-order
+        // Status is cast to OrderStatus enum, so compare with enum not string
+        if ($preOrder->status !== OrderStatus::PRE_ORDER) {
+            throw new \InvalidArgumentException('Only pre-orders can be executed.');
+        }
+
+        // Build items array from order items (ensure items are loaded)
+        if (!$preOrder->relationLoaded('items')) {
+            $preOrder->load('items');
+        }
+
+        $items = $preOrder->items->map(fn($item) => [
+            'product_id' => $item->product_id,
+            'quantity' => $item->quantity,
+        ])->toArray();
+
+        // Calculate material needs for stock validation
+        $totalNeeds = $this->calculateTotalNeeds($items);
+        $materialIds = array_keys($totalNeeds);
+
+        return DB::transaction(function () use ($preOrder, $items, $totalNeeds, $materialIds) {
+            $materials = collect();
+
+            // Validate and lock materials for stock deduction
+            if (count($materialIds) > 0) {
+                $materials = Material::whereIn('id', $materialIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                $this->validateStockAvailability($materials, $totalNeeds);
+            }
+
+            // Update order status from PRE_ORDER to COMPLETED
+            $preOrder->status = OrderStatus::COMPLETED;
+            $preOrder->order_date = now();
+            $preOrder->save();
+
+            // Deduct stock now that order is confirmed
+            $this->deductStockForOrder(['items' => $items], $materials);
+
+            // Log the conversion
+            Log::channel('business')->info('Pre-order executed and converted to completed', [
+                'order_id' => $preOrder->id,
+                'customer_name' => $preOrder->customer_name,
+                'total_price' => $preOrder->total_price,
+            ]);
+
+            return $preOrder->fresh();
+        });
+    }
+
+    /**
+     * Calculate order items data (totals and per-item info)
+     * Follows Single Responsibility: Only handles price/hpp calculations
+     */
+    private function calculateOrderItemsData(array $data, Collection $materials): array
+    {
+        $totalPrice = 0;
+        $totalHPP = 0;
+        $orderItemsData = [];
+
+        foreach ($data['items'] as $item) {
+            $product = Product::with('materials')->findOrFail($item['product_id']);
+
+            $subtotal = $product->selling_price * $item['quantity'];
+            $subhpp = $this->calculateRealTimeHPP($product, $item['quantity']);
+            $hppPerUnit = $subhpp / $item['quantity'];
+
+            $totalPrice += $subtotal;
+            $totalHPP += $subhpp;
+
+            $orderItemsData[] = [
+                'product' => $product,
+                'quantity' => $item['quantity'],
+                'price' => $product->selling_price,
+                'hpp_per_unit' => $hppPerUnit,
+            ];
+        }
+
+        return [$totalPrice, $totalHPP, $orderItemsData];
+    }
+
+    /**
+     * Deduct stock from materials
+     * Follows Single Responsibility: Only handles stock deduction logic
+     */
+    private function deductStockForOrder(array $data, Collection $materials): void
+    {
+        foreach ($data['items'] as $item) {
+            $product = Product::with('materials')->findOrFail($item['product_id']);
+
+            if ($product->materials->count() > 0) {
+                foreach ($product->materials as $material) {
+                    $qtyNeeded = $material->pivot->quantity_needed * $item['quantity'];
+                    $lockedMaterial = $materials->get($material->id) ?? $material;
+
+                    // Decrement stock
+                    $lockedMaterial->decrement('current_stock', $qtyNeeded);
+
+                    // Log stock deduction
+                    StockLog::create([
+                        'material_id' => $material->id,
+                        'type' => StockLogType::OUT->value,
+                        'amount' => $qtyNeeded,
+                        'description' => "Production: {$product->name} ({$item['quantity']} units)",
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate that all products in items exist
+     *
+     * @throws MaterialNotFoundException
+     */
+    private function validateProductsExist(array $items): void
+    {
+        foreach ($items as $item) {
+            if (!Product::where('id', $item['product_id'])->exists()) {
+                throw new MaterialNotFoundException($item['product_id']);
+            }
+        }
     }
 
     /**

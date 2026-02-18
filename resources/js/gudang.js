@@ -1,6 +1,33 @@
 /**
- * Inventory Management.
- * Handles material stock tracking, history logs, and restock operations.
+ * Inventory Management Module
+ *
+ * SOLID Principles Applied:
+ * 1. Single Responsibility Principle (SRP)
+ *    - Each function has one clear purpose (loadMaterials, loadHistory, etc.)
+ *    - Separate utility functions for formatting and calculations
+ *
+ * 2. Open/Closed Principle (OCP)
+ *    - Status determination is extensible without modifying core logic
+ *    - Price resolution uses configuration objects
+ *
+ * 3. Liskov Substitution Principle (LSP)
+ *    - API response handling works with both array and Resource format
+ *
+ * 4. Interface Segregation Principle (ISP)
+ *    - Functions accept only the parameters they need
+ *    - Utility functions are small and focused
+ *
+ * 5. Dependency Inversion Principle (DIP)
+ *    - Depends on abstractions (API endpoints) not concrete implementations
+ *    - Uses utility functions from utils.js and ui.js
+ *
+ * Best Practices:
+ * - Async/await for better readability
+ * - Error handling with try/catch
+ * - Consistent naming conventions (camelCase)
+ * - Documentation with JSDoc comments
+ * - Separation of concerns (data fetching, rendering, event handling)
+ * - DRY principle (Don't Repeat Yourself)
  */
 
 import "./bootstrap";
@@ -113,8 +140,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /**
  * Load material inventory table and restock modal dropdown.
+ * Implements SRP by focusing solely on data loading and rendering.
  */
 async function loadMaterials() {
+    const tbody = document.getElementById("tabelStok");
+    const selectBahan = document.getElementById("selectBahan");
+
+    // Show loading state
+    if (tbody) {
+        tbody.innerHTML =
+            '<tr><td colspan="5" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-700"></div><p class="mt-2 text-slate-500 text-sm">Memuat data...</p></td></tr>';
+    }
+
     try {
         const response = await fetch(apiMaterials, {
             headers: {
@@ -146,39 +183,52 @@ async function loadMaterials() {
         materials.forEach((mat) => {
             materialMap.set(String(mat.id), mat);
 
-            // Determine status indicator
-            let statusIcon =
-                '<i class="bi bi-check-circle-fill text-emerald-600"></i>';
-            let statusText = '<span class="text-slate-600">Optimal</span>';
+            // Determine status indicator using utility classes (SOLID - Open/Closed Principle)
+            let statusClass = "status-badge status-badge--success";
+            let statusText = "Optimal";
+            let statusIcon = '<i class="bi bi-check-circle-fill"></i>';
 
             if (mat.current_stock < mat.min_stock_level) {
-                statusIcon =
-                    '<i class="bi bi-x-circle-fill text-rose-600"></i>';
-                statusText =
-                    '<span class="text-rose-700 font-semibold">Critical</span>';
+                statusClass = "status-badge status-badge--danger";
+                statusText = "Critical";
+                statusIcon = '<i class="bi bi-x-circle-fill"></i>';
             } else if (mat.current_stock < mat.min_stock_level * 2) {
-                statusIcon =
-                    '<i class="bi bi-exclamation-circle-fill text-amber-600"></i>';
-                statusText = '<span class="text-slate-600">Low</span>';
+                statusClass = "status-badge status-badge--warning";
+                statusText = "Low";
+                statusIcon = '<i class="bi bi-exclamation-circle-fill"></i>';
             }
 
             htmlTabel += `
-                <tr data-material-id="${mat.id}" class="hover:bg-slate-50">
+                <tr data-material-id="${mat.id}" class="hover:bg-slate-50 transition-colors">
                     <td class="font-semibold text-slate-900">${mat.name}</td>
-                    <td class="col-price" data-material-id="${mat.id}">${buildPriceCellHtml(mat)}</td>
-                    <td class="text-slate-700">${mat.current_stock}</td>
-                    <td class="uppercase text-slate-500">${mat.unit}</td>
-                    <td class="flex items-center gap-2 text-sm">${statusIcon} ${statusText}</td>
+                    <td class="col-price hidden sm:table-cell" data-material-id="${mat.id}">${buildPriceCellHtml(mat)}</td>
+                    <td class="text-right font-medium text-slate-700">${formatNumber(mat.current_stock)}</td>
+                    <td class="uppercase text-slate-500 font-medium hidden md:table-cell">${mat.unit}</td>
+                    <td class="text-center">
+                        <span class="${statusClass}">${statusIcon} ${statusText}</span>
+                    </td>
                 </tr>
             `;
 
             htmlOption += `<option value="${mat.id}">${mat.name} (${mat.unit})</option>`;
         });
 
-        document.getElementById("tabelStok").innerHTML = htmlTabel;
-        document.getElementById("selectBahan").innerHTML = htmlOption;
+        // Render data (check if elements exist before setting innerHTML)
+        if (tbody) {
+            tbody.innerHTML =
+                htmlTabel ||
+                '<tr><td colspan="5" class="table-empty-state"><p>Tidak ada data bahan.</p></td></tr>';
+        }
+        if (selectBahan) {
+            selectBahan.innerHTML = htmlOption;
+        }
     } catch (error) {
-        console.error(error);
+        console.error("Error loading materials:", error);
+        // Show user-friendly error message
+        if (tbody) {
+            tbody.innerHTML =
+                '<tr><td colspan="5" class="text-center py-6 text-rose-600"><i class="bi bi-exclamation-triangle-fill text-2xl mb-2"></i><p class="text-sm font-medium">Gagal memuat data. Silakan refresh halaman.</p></td></tr>';
+        }
     }
 }
 

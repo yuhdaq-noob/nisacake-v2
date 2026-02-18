@@ -32,6 +32,17 @@ class OrderController extends Controller
         return OrderResource::collection($orders);
     }
 
+    // Mengambil daftar pre-order yang belum diproses
+    public function getScheduledOrders(): AnonymousResourceCollection
+    {
+        $preOrders = Order::where('status', OrderStatus::PRE_ORDER->value)
+            ->with('items.product')
+            ->orderBy('scheduled_at', 'asc')
+            ->get();
+
+        return OrderResource::collection($preOrders);
+    }
+
     // Menampilkan detail satu order beserta item dan produk
     public function show(Order $order): OrderResource
     {
@@ -82,6 +93,93 @@ class OrderController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal membuat order.',
+            ], 500);
+        }
+    }
+
+    // Membuat pre-order tanpa mengurangi stok (penjadwalan pesanan)
+    public function preOrder(StoreOrderRequest $request): JsonResponse
+    {
+        try {
+            // Proses pembuatan pre-order via service
+            $order = $this->orderService->createPreOrder($request->validated());
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pre-order berhasil dijadwalkan.',
+                'data' => new OrderResource($order->load('items.product')),
+            ], 201);
+
+        } catch (MaterialNotFoundException $e) {
+            // Jika produk tidak ditemukan, kembalikan error 404
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 404);
+
+        } catch (\Exception $e) {
+            // Jika error lain, log dan kembalikan error 500
+            Log::error('Gagal membuat pre-order: '.$e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal membuat pre-order.',
+            ], 500);
+        }
+    }
+
+    // Mengeksekusi pre-order: konversi dari PRE_ORDER ke COMPLETED dengan deduction stok
+    public function executePreOrder(Order $order): JsonResponse
+    {
+        try {
+            // Validasi bahwa order yang diakses adalah pre-order
+            // Karena status di-cast ke OrderStatus enum, bandingkan dengan enum, bukan string
+            if ($order->status !== OrderStatus::PRE_ORDER) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Order ini bukan pre-order atau sudah dieksekusi.',
+                ], 400);
+            }
+
+            // Load items relationship untuk executePreOrder
+            if (!$order->relationLoaded('items')) {
+                $order->load('items');
+            }
+
+            // Eksekusi pre-order dengan deduction stok
+            $completedOrder = $this->orderService->executePreOrder($order);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pre-order berhasil dieksekusi.',
+                'data' => new OrderResource($completedOrder->load('items.product')),
+            ], 200);
+
+        } catch (InsufficientStockException $e) {
+            // Jika stok kurang, kembalikan error 400
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 400);
+
+        } catch (MaterialNotFoundException $e) {
+            // Jika bahan tidak ditemukan, kembalikan error 404
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 404);
+
+        } catch (\InvalidArgumentException $e) {
+            // Jika argument invalid
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 400);
+
+        } catch (\Exception $e) {
+            // Jika error lain, log dan kembalikan error 500
+            Log::error('Gagal mengeksekusi pre-order: '.$e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengeksekusi pre-order.',
             ], 500);
         }
     }

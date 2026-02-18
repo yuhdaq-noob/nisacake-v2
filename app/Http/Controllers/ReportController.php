@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Exports\LaporanExport;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
@@ -19,8 +20,10 @@ class ReportController extends Controller
     // Mengambil semua order beserta itemnya untuk keperluan laporan
     public function index(): AnonymousResourceCollection
     {
-        // Ambil semua order beserta relasi items dan produk
+        // Ambil semua order yang sudah COMPLETED (baik immediate maupun pre-order yang sudah dibayar)
+        // Pre-order yang belum dibayar akan ditampilkan di bagian jadwal pesanan
         $orders = Order::with('items.product')
+            ->where('status', OrderStatus::COMPLETED->value)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -37,8 +40,9 @@ class ReportController extends Controller
         $period = $request->query('period', 'all'); // Periode filter (belum dipakai)
         $search = $request->query('search', '');    // Kata kunci pencarian (belum dipakai)
 
-        // Ambil data order beserta relasi items dan produk
+        // Ambil data order beserta relasi items dan produk yang sudah COMPLETED
         $orders = Order::with('items.product')
+            ->where('status', OrderStatus::COMPLETED->value)
             ->orderBy('created_at', 'desc')
             ->get();
 

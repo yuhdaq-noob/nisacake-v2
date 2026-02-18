@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,7 +23,7 @@ class OrderFactory extends Factory
         return [
             'customer_name' => fake()->name(),
             'order_date' => fake()->dateTimeBetween('-3 months', 'now'),
-            'status' => fake()->randomElement(['pending', 'processing', 'completed', 'cancelled']),
+            'status' => fake()->randomElement([OrderStatus::COMPLETED->value, OrderStatus::CANCELLED->value]),
             'total_price' => 0,  // Akan dihitung dari order items
             'total_hpp' => 0,    // Akan dihitung dari order items
         ];

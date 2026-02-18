@@ -1,6 +1,34 @@
 /**
- * Reports and Dashboard module.
- * Handles report generation, filtering, and data visualization.
+ * Reports and Financial Dashboard Module
+ *
+ * SOLID Principles Applied:
+ * 1. Single Responsibility Principle (SRP)
+ *    - Separate functions for data loading, filtering, rendering, and charting
+ *    - Each function handles one specific task
+ *
+ * 2. Open/Closed Principle (OCP)
+ *    - Filter logic is extensible without modifying core functionality
+ *    - Chart configuration can be modified without changing render logic
+ *
+ * 3. Liskov Substitution Principle (LSP)
+ *    - Data handling works with multiple API response formats
+ *    - Flexible data structure handling
+ *
+ * 4. Interface Segregation Principle (ISP)
+ *    - Functions are focused and don't force dependencies
+ *    - Modular design with clear interfaces
+ *
+ * 5. Dependency Inversion Principle (DIP)
+ *    - Depends on utility abstractions (formatRupiah, date helpers)
+ *    - Chart library integration is abstracted
+ *
+ * Best Practices:
+ * - Separation of concerns (data, view, business logic)
+ * - Consistent error handling
+ * - Event-driven architecture
+ * - Reusable utility functions
+ * - Clear naming conventions
+ * - Performance optimization (efficient filtering)
  */
 
 // FIXME: PERHITUNGAN
@@ -18,12 +46,21 @@ import {
 } from "./utils.js";
 
 const apiUrl = "/api/reports";
+const overheadApiUrl = "/api/overhead-settings";
 let allData = [];
 let myChart = null;
 
 // Load and initialize report data on page load
 document.addEventListener("DOMContentLoaded", async () => {
     if (!document.getElementById("myChart")) return;
+
+    // Show loading state
+    const tbody = document.getElementById("tabelLaporan");
+    if (tbody) {
+        tbody.innerHTML =
+            '<tr><td colspan="7" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-700"></div><p class="mt-2 text-slate-500 text-sm">Memuat data transaksi...</p></td></tr>';
+    }
+
     bindExportDropdown();
     try {
         const response = await fetch(apiUrl, {
@@ -51,6 +88,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderChart(allData);
         renderTable(allData);
 
+        await loadOverheadSettings();
+
         // Export event listeners
         document
             .getElementById("btnExportExcel")
@@ -65,10 +104,52 @@ document.addEventListener("DOMContentLoaded", async () => {
                 exportLaporan("pdf");
             });
     } catch (error) {
-        console.error(error);
-        alert("Failed to load report data.");
+        console.error("Error loading report data:", error);
+        const tbody = document.getElementById("tabelLaporan");
+        if (tbody) {
+            tbody.innerHTML =
+                '<tr><td colspan="7" class="text-center py-6 text-rose-600"><i class="bi bi-exclamation-triangle-fill text-2xl mb-2"></i><p class="text-sm font-medium">Gagal memuat data laporan. Silakan refresh halaman.</p></td></tr>';
+        }
     }
 });
+
+async function loadOverheadSettings() {
+    const tbody = document.getElementById("tabelOverhead");
+    if (!tbody) return;
+
+    // Show loading state
+    tbody.innerHTML =
+        '<tr><td colspan="3" class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-700"></div></td></tr>';
+
+    try {
+        const response = await fetch(overheadApiUrl, {
+            headers: getAuthHeaders(),
+        });
+
+        if (response.status === 401) {
+            alert("Sesi login telah berakhir. Silakan login kembali.");
+            window.location.href = "/login";
+            return;
+        }
+
+        let data = await response.json();
+
+        let items;
+        if (Array.isArray(data)) {
+            items = data;
+        } else if (data.data && Array.isArray(data.data)) {
+            items = data.data;
+        } else {
+            items = [];
+        }
+
+        renderOverheadTable(items);
+    } catch (error) {
+        console.error("Error loading overhead settings:", error);
+        tbody.innerHTML =
+            '<tr><td colspan="3" class="text-center py-4 text-rose-600"><i class="bi bi-exclamation-triangle-fill"></i><p class="text-xs mt-1">Gagal memuat data overhead.</p></td></tr>';
+    }
+}
 
 // Filter and search event listeners
 document
@@ -136,15 +217,14 @@ function renderTable(data) {
 
     if (!data || data.length === 0) {
         tbody.innerHTML =
-            '<tr><td colspan="7" class="text-center py-4 text-slate-500">Tidak ada data transaksi pada periode ini.</td></tr>';
+            '<tr><td colspan="7" class="table-empty-state"><p>Tidak ada data transaksi pada periode ini.</p></td></tr>';
         document.getElementById("tableTotalOmzet").innerText = "Rp 0";
         document.getElementById("tableTotalHPP").innerText = "Rp 0";
         document.getElementById("tableTotalProfit").innerText = "Rp 0";
         return;
     }
-         //FIXME: PERHITUNGAN
-         
-    data.forEach((order) => {
+
+    data.forEach((order, index) => {
         const omzetVal = Number(order.total_omzet) || 0;
         const hppVal = Number(order.total_hpp) || 0;
         const profitVal = Number(order.profit) || 0;
@@ -153,15 +233,19 @@ function renderTable(data) {
         tHPP += hppVal;
         tProfit += profitVal;
 
+        // Determine profit styling
+        const profitClass =
+            profitVal >= 0 ? "text-emerald-700" : "text-rose-700";
+
         html += `
-            <tr class="hover:bg-slate-50">
+            <tr class="hover:bg-slate-50 transition-colors" data-order-id="${order.id}">
                 <td class="font-semibold text-slate-900">#${order.id}</td>
-                <td>${order.date}</td>
-                <td class="text-slate-800">${order.customer}</td>
-                <td><span class="text-xs text-slate-500">${order.products}</span></td>
-                <td class="text-right">${formatRupiah(omzetVal)}</td>
-                <td class="text-right">${formatRupiah(hppVal)}</td>
-                <td class="font-bold text-right text-emerald-700">${formatRupiah(profitVal)}</td>
+                <td class="text-slate-700 text-xs sm:text-sm">${order.date}</td>
+                <td class="text-slate-800 hidden sm:table-cell">${order.customer || "-"}</td>
+                <td class="text-slate-600 text-xs max-w-[150px] truncate" title="${order.products}">${order.products}</td>
+                <td class="text-right font-medium text-slate-900">${formatRupiah(omzetVal)}</td>
+                <td class="text-right font-medium text-slate-700 hidden sm:table-cell">${formatRupiah(hppVal)}</td>
+                <td class="text-right font-bold ${profitClass}">${formatRupiah(profitVal)}</td>
             </tr>
         `;
     });
@@ -171,6 +255,39 @@ function renderTable(data) {
     document.getElementById("tableTotalHPP").innerText = formatRupiah(tHPP);
     document.getElementById("tableTotalProfit").innerText =
         formatRupiah(tProfit);
+}
+
+function renderOverheadTable(items) {
+    const tbody = document.getElementById("tabelOverhead");
+    if (!tbody) return;
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML =
+            '<tr><td colspan="3" class="table-empty-state"><p>Belum ada konfigurasi overhead.</p></td></tr>';
+        return;
+    }
+
+    let html = "";
+    items.forEach((item, index) => {
+        if (!item) return;
+
+        const rawValue = Number(item.value);
+        const formattedValue = Number.isFinite(rawValue)
+            ? new Intl.NumberFormat("id-ID", {
+                  maximumFractionDigits: 2,
+              }).format(rawValue)
+            : item.value;
+
+        html += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="text-slate-800 font-medium">${item.label ?? item.key}</td>
+                <td class="text-right font-semibold text-slate-900">${formattedValue}</td>
+                <td class="text-center text-slate-500 text-xs font-medium uppercase hidden sm:table-cell">${item.unit || "-"}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
 }
 
 function bindExportDropdown() {
@@ -196,6 +313,10 @@ function renderChart(data) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Detect screen size for responsive configuration
+    const isMobile = window.innerWidth < 768;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+
     let dailyGroups = {};
     data.forEach((item) => {
         if (!item || !item.date) return;
@@ -205,8 +326,8 @@ function renderChart(data) {
         const dateKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
         const label = d.toLocaleDateString("id-ID", {
             day: "2-digit",
-            month: "short",
-            year: "numeric",
+            month: isMobile ? "short" : "short",
+            year: isMobile ? undefined : "numeric",
         });
 
         if (!dailyGroups[dateKey]) {
@@ -238,7 +359,9 @@ function renderChart(data) {
         }
         myChart = null;
     }
-    myChart = new Chart(ctx, {
+
+    // Responsive configuration based on device
+    const chartConfig = {
         type: "line",
         data: {
             labels: labels,
@@ -246,50 +369,76 @@ function renderChart(data) {
                 {
                     label: "Omzet",
                     data: dataOmzet,
-                    borderColor: "#b0bec5",
-                    backgroundColor: "rgba(176, 190, 197, 0.1)",
-                    borderWidth: 2,
+                    borderColor: "#0891b2",
+                    backgroundColor: isMobile
+                        ? "rgba(8, 145, 178, 0.05)"
+                        : "rgba(8, 145, 178, 0.1)",
+                    borderWidth: isMobile ? 2 : 2.5,
                     tension: 0.4,
                     fill: true,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
+                    pointRadius: isMobile ? 0 : 0,
+                    pointHoverRadius: isMobile ? 5 : 6,
+                    pointHitRadius: isMobile ? 20 : 10,
                 },
                 {
                     label: "Profit",
                     data: dataProfit,
-                    borderColor: "#5d4037",
-                    backgroundColor: "rgba(93, 64, 55, 0.05)",
-                    borderWidth: 2,
+                    borderColor: "#0e7490",
+                    backgroundColor: isMobile
+                        ? "rgba(14, 116, 144, 0.03)"
+                        : "rgba(14, 116, 144, 0.08)",
+                    borderWidth: isMobile ? 2 : 2.5,
                     tension: 0.4,
                     fill: true,
-                    pointRadius: 3,
+                    pointRadius: isMobile ? 0 : 3,
                     pointBackgroundColor: "#fff",
-                    pointBorderColor: "#5d4037",
+                    pointBorderColor: "#0e7490",
                     pointBorderWidth: 2,
+                    pointHoverRadius: isMobile ? 5 : 6,
+                    pointHitRadius: isMobile ? 20 : 10,
                 },
             ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            devicePixelRatio: window.devicePixelRatio || 1,
             plugins: {
                 legend: {
-                    position: "top",
-                    align: "end",
+                    display: true,
+                    position: isMobile ? "bottom" : "top",
+                    align: isMobile ? "center" : "end",
                     labels: {
-                        boxWidth: 10,
+                        boxWidth: isMobile ? 12 : 10,
+                        padding: isMobile ? 12 : 10,
                         usePointStyle: true,
-                        font: { size: 11 },
+                        font: {
+                            size: isMobile ? 11 : 12,
+                            family: "'Inter', 'system-ui', sans-serif",
+                            weight: "500",
+                        },
+                        color: "#334155",
                     },
                 },
                 tooltip: {
+                    enabled: true,
                     mode: "index",
                     intersect: false,
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    titleColor: "#333",
-                    bodyColor: "#555",
-                    borderColor: "#f0f0f0",
+                    backgroundColor: "rgba(255, 255, 255, 0.97)",
+                    titleColor: "#1e293b",
+                    bodyColor: "#475569",
+                    borderColor: "#e2e8f0",
                     borderWidth: 1,
+                    padding: isMobile ? 10 : 12,
+                    boxPadding: 6,
+                    titleFont: {
+                        size: isMobile ? 12 : 13,
+                        weight: "600",
+                    },
+                    bodyFont: {
+                        size: isMobile ? 11 : 12,
+                    },
+                    displayColors: true,
                     callbacks: {
                         label: function (context) {
                             let label = context.dataset.label || "";
@@ -301,6 +450,7 @@ function renderChart(data) {
                                     style: "currency",
                                     currency: "IDR",
                                     minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
                                 }).format(context.parsed.y);
                             }
                             return label;
@@ -312,35 +462,94 @@ function renderChart(data) {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: "#f8f9fa",
+                        color: "#f1f5f9",
                         drawBorder: false,
+                        lineWidth: 1,
+                    },
+                    border: {
+                        display: false,
                     },
                     ticks: {
-                        font: { size: 10 },
-                        color: "#999",
+                        font: {
+                            size: isMobile ? 9 : 10,
+                            family: "'Inter', 'system-ui', sans-serif",
+                        },
+                        color: "#64748b",
+                        padding: isMobile ? 4 : 8,
+                        maxTicksLimit: isMobile ? 5 : 8,
                         callback: function (value) {
-                            if (value >= 1000000)
-                                return "Rp " + value / 1000000 + "jt";
-                            if (value >= 1000)
-                                return "Rp " + value / 1000 + "rb";
-                            return value;
+                            if (value >= 1000000) {
+                                return isMobile
+                                    ? (value / 1000000).toFixed(1) + "jt"
+                                    : "Rp " +
+                                          (value / 1000000).toFixed(1) +
+                                          "jt";
+                            }
+                            if (value >= 1000) {
+                                return isMobile
+                                    ? (value / 1000).toFixed(0) + "rb"
+                                    : "Rp " + (value / 1000).toFixed(0) + "rb";
+                            }
+                            return isMobile ? value : "Rp " + value;
                         },
                     },
                 },
                 x: {
-                    grid: { display: false },
+                    grid: {
+                        display: false,
+                    },
+                    border: {
+                        display: false,
+                    },
                     ticks: {
-                        font: { size: 10 },
-                        color: "#999",
+                        font: {
+                            size: isMobile ? 9 : 10,
+                            family: "'Inter', 'system-ui', sans-serif",
+                        },
+                        color: "#64748b",
+                        maxRotation: isMobile ? 45 : 0,
+                        minRotation: isMobile ? 45 : 0,
+                        padding: isMobile ? 4 : 8,
+                        autoSkip: true,
+                        autoSkipPadding: isMobile ? 20 : 10,
+                        maxTicksLimit: isMobile ? 6 : 12,
                     },
                 },
             },
             interaction: {
-                mode: "nearest",
+                mode: isMobile ? "nearest" : "index",
                 axis: "x",
                 intersect: false,
             },
+            hover: {
+                mode: isMobile ? "nearest" : "index",
+                intersect: false,
+            },
+            animation: {
+                duration: isMobile ? 400 : 750,
+                easing: "easeInOutQuart",
+            },
         },
+    };
+
+    myChart = new Chart(ctx, chartConfig);
+
+    // Handle window resize for responsive updates
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (myChart) {
+                const wasMobile =
+                    myChart.options.plugins.legend.position === "bottom";
+                const nowMobile = window.innerWidth < 768;
+
+                // Only re-render if mobile state changed
+                if (wasMobile !== nowMobile) {
+                    renderChart(data);
+                }
+            }
+        }, 250);
     });
 }
 

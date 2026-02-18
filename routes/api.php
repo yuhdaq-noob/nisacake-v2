@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MaterialPriceLogController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OverheadSettingController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StockController;
@@ -27,6 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Order Management
     Route::post('/buat-pesanan', [OrderController::class, 'store']);
+    Route::post('/jadwal-pesanan', [OrderController::class, 'preOrder']);
+    Route::get('/jadwal-pesanan', [OrderController::class, 'getScheduledOrders']);
+    Route::post('/orders/{order}/execute-preorder', [OrderController::class, 'executePreOrder']);
     // FIXME: TIDAK DIPAKAI
     // Endpoint list orders belum dipakai oleh UI saat ini.
     Route::get('/orders', [OrderController::class, 'index']);
@@ -54,6 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Report Generation
     // FIXME: PERHITUNGAN
     Route::get('/reports', [ReportController::class, 'index']);
+
+    // Overhead Settings
+    Route::get('/overhead-settings', [OverheadSettingController::class, 'index']);
 
     // Stock Management
     Route::post('/stocks/add', [StockController::class, 'store']);

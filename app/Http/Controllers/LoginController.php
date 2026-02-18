@@ -32,11 +32,15 @@ class LoginController extends Controller
         // Coba login dengan kredensial
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate(); // Regenerasi session agar aman
+            $user = Auth::user();
+            // Create sanctum token for API access (follows Single Responsibility principle)
+            $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Login berhasil. Mengalihkan...',
                 'redirect' => route('kasir'),
+                'token' => $token, // Return token for API authentication
             ]);
         }
 

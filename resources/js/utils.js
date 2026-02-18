@@ -102,6 +102,26 @@ export const isThisYear = (dateString) => {
 };
 
 /**
+ * Validate if a date string is in valid format (YYYY-MM-DD).
+ */
+export const isValidDate = (dateString) => {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+};
+
+/**
+ * Format date to Indonesian format (DD/MM/YYYY).
+ */
+export const formatDateIndo = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    });
+};
+
+/**
  * Error message display helpers
  */
 export const showError = (elementId, message) => {

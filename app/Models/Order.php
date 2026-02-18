@@ -21,11 +21,13 @@ class Order extends Model
         'status',
         'total_price',
         'total_hpp',
+        'scheduled_at',
     ];
 
     protected $casts = [
         'status' => OrderStatus::class,
         'order_date' => 'datetime',
+        'scheduled_at' => 'datetime',
         'total_price' => 'decimal:2',
         'total_hpp' => 'decimal:2',
     ];

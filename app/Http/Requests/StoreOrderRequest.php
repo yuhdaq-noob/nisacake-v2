@@ -21,6 +21,7 @@ class StoreOrderRequest extends FormRequest
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'scheduled_at' => 'nullable|date_format:Y-m-d\TH:i|after:now',
         ];
     }
 
@@ -39,6 +40,8 @@ class StoreOrderRequest extends FormRequest
             'items.*.quantity.required' => 'Kuantitas produk wajib diisi.',
             'items.*.quantity.integer' => 'Kuantitas harus berupa angka.',
             'items.*.quantity.min' => 'Kuantitas minimal 1.',
+            'scheduled_at.date_format' => 'Format waktu jadwal tidak valid.',
+            'scheduled_at.after' => 'Waktu jadwal harus di masa depan.',
         ];
     }
 }

@@ -38,6 +38,7 @@ class OrderResource extends JsonResource
             // Tanggal yang diformat untuk UI (Asia/Jakarta)
             'date' => $this->created_at?->timezone('Asia/Jakarta')->format('d M Y H:i'),
             'status' => $this->status,
+            'scheduled_at' => $this->scheduled_at?->format('Y-m-d H:i:s'),
             'total_price' => $this->total_price,
             // Alias agar kompatibel dengan front-end lama
             'total_omzet' => $this->total_price,

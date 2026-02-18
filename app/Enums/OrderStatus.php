@@ -4,16 +4,14 @@ namespace App\Enums;
 
 enum OrderStatus: string
 {
-    case PENDING = 'pending';
-    case PROCESSING = 'processing';
+    case PRE_ORDER = 'pre_order';
     case COMPLETED = 'completed';
     case CANCELLED = 'cancelled';
 
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => 'Menunggu',
-            self::PROCESSING => 'Diproses',
+            self::PRE_ORDER => 'Pre-Order',
             self::COMPLETED => 'Selesai',
             self::CANCELLED => 'Dibatalkan',
         };

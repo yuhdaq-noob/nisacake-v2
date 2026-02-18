@@ -3,94 +3,133 @@
 @php($active = 'kasir')
 
 @section('content')
-    <div class="grid gap-4 lg:grid-cols-5">
-        <div class="lg:col-span-2 space-y-4">
-            <div class="bg-white rounded-2xl shadow-card border border-slate-100 h-full">
-                <div class="px-5 pt-5 pb-3">
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Kasir</p>
-                    <h3 class="text-xl font-bold text-slate-900">Input Pesanan</h3>
+    <div class="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-3">
+        <!-- Input Section -->
+        <div class="lg:col-span-1">
+            <div class="bg-white shadow-md rounded-xl border border-slate-200 overflow-hidden sticky top-4">
+                <div class="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                    <p class="text-xs uppercase tracking-widest font-bold text-slate-400">Pesanan Baru</p>
+                    <h3 class="text-lg sm:text-xl font-bold text-slate-900 mt-2">Input Produk</h3>
                 </div>
-                <div class="px-5 pb-5 space-y-4">
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-slate-600">Nama Pelanggan</label>
-                        <input type="text" id="customer_name" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200" placeholder="Nama Pembeli..." required>
-                        <div id="error_customer_name" class="hidden text-sm text-rose-600"></div>
+                <div class="px-4 sm:px-6 py-4 space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-slate-700">Nama Pelanggan</label>
+                        <input type="text" id="customer_name" class="w-full rounded-lg border border-slate-300 bg-white text-slate-900 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder-slate-400 text-sm font-medium" placeholder="Ketik nama pelanggan..." required>
+                        <div id="error_customer_name" class="hidden text-xs text-red-600 font-medium"></div>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-slate-600">Pilih Produk</label>
-                        <input class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200" list="product_list" id="product_input" placeholder="Ketik nama kue..." autocomplete="off">
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-slate-700">Pilih Produk</label>
+                        <input class="w-full rounded-lg border border-slate-300 bg-white text-slate-900 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder-slate-400 text-sm font-medium" list="product_list" id="product_input" placeholder="Cari produk..." autocomplete="off">
                         <datalist id="product_list"></datalist>
-                        <div id="error_product_input" class="hidden text-sm text-rose-600"></div>
+                        <div id="error_product_input" class="hidden text-xs text-red-600 font-medium"></div>
                     </div>
 
-                    <div class="space-y-1">
-                        <label class="text-xs font-semibold text-slate-600">Jumlah</label>
+                    <div class="space-y-2 pt-1">
+                        <label class="text-sm font-semibold text-slate-700">Jumlah</label>
                         <div class="flex gap-2">
-                            <input type="number" id="quantity" class="w-full rounded-lg border border-slate-200 px-3 py-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200" value="1" min="1">
-                            <button class="px-4 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 font-semibold hover:bg-amber-100" type="button" onclick="tambahKeKeranjang()">
-                                <i class="bi bi-plus-lg"></i>
+                            <input type="number" id="quantity" class="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-center font-semibold text-slate-900" value="1" min="1">
+                            <button class="btn-prim" type="button" onclick="tambahKeKeranjang()" style="padding: 0.75rem 0.75rem; min-width: auto; width: auto;">
+                                <i class="bi bi-plus-lg text-lg"></i>
                             </button>
                         </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-slate-700">Tanggal Pesanan</label>
+                        <input type="date" id="order_date" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium text-slate-900" required value="">
+                        <div id="error_order_date" class="hidden text-xs text-red-600 font-medium"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-3 space-y-4">
-            <div class="bg-white rounded-2xl shadow-card border border-slate-100 h-full flex flex-col">
-                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
-                    <div>
-                        <p class="text-[0.67rem] uppercase tracking-[0.2em] text-slate-400">Keranjang</p>
-                        <h6 class="text-sm font-semibold text-slate-900">Ringkasan Belanja</h6>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[0.7rem] text-slate-400">Total pembayaran</p>
-                        <p id="totalDisplay" class="text-lg font-bold text-amber-800 leading-tight">Rp 0</p>
+        <!-- Cart Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-white shadow-md rounded-xl border border-slate-200 overflow-hidden flex flex-col h-fit">
+                <div class="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <p class="text-xs uppercase tracking-widest font-bold text-slate-400">Keranjang</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-slate-900 mt-2">Ringkasan belanja</h3>
+                        </div>
+                        <div class="sm:text-right">
+                            <p class="text-xs text-slate-600 font-medium">Total</p>
+                            <p id="totalDisplay" class="text-2xl font-bold text-blue-600 mt-0.5">Rp 0</p>
+                        </div>
                     </div>
                 </div>
-                <div class="px-2 flex-1">
-                    <div class="overflow-x-auto max-h-[320px]">
-                        <table class="min-w-full table-basic text-sm">
-                            <thead class="sticky top-0">
+                <div class="overflow-x-auto flex-1">
+                    <div class="max-h-96 overflow-y-auto">
+                        <table class="w-full text-sm">
+                            <thead class="sticky top-0 bg-slate-100 border-b border-slate-200">
                                 <tr>
-                                    <th class="text-left">Produk</th>
-                                    <th class="text-right">Harga</th>
-                                    <th class="text-center">Qty</th>
-                                    <th class="text-right">Subtotal</th>
-                                    <th class="text-center">Aksi</th>
+                                    <th class="text-left px-4 sm:px-6 py-3 font-semibold text-slate-700">Produk</th>
+                                    <th class="text-right px-4 sm:px-6 py-3 font-semibold text-slate-700">Harga</th>
+                                    <th class="text-center px-4 sm:px-6 py-3 font-semibold text-slate-700">Qty</th>
+                                    <th class="text-right px-4 sm:px-6 py-3 font-semibold text-slate-700">Subtotal</th>
+                                    <th class="text-center px-4 sm:px-6 py-3 font-semibold text-slate-700">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabelKeranjang">
-                                <tr><td colspan="5" class="text-center py-4 text-slate-500">Keranjang masih kosong.</td></tr>
+                            <tbody id="tabelKeranjang" class="divide-y divide-slate-200">
+                                <tr><td colspan="5" class="text-center py-8 text-slate-500 font-medium">Keranjang kosong. Tambahkan produk untuk memulai.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <div class="px-5 py-4 space-y-3 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
-                    <div id="error_checkout" class="hidden text-center text-sm font-semibold text-rose-700"></div>
-                    <button
-                        id="btnBayarSekarang"
-                        type="button"
-                        onclick="prosesTransaksi()"
-                        class="btn-prim w-full inline-flex items-center justify-center gap-2 text-base shadow-card focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-slate-50 transition-all"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" class="w-4 h-4">
-                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
-                            <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
-                        </svg>
-                        <span id="btnBayarSekarangLabel">Bayar Sekarang</span>
-                    </button>
-                    <div id="orderCompleteBox" class="hidden flex flex-col md:flex-row md:items-center md:justify-between gap-2 border border-slate-200 rounded-xl p-3 bg-white">
-                        <div class="text-sm text-slate-600">
-                            Pesanan terakhir: <span id="lastOrderId" class="font-semibold text-slate-900">-</span>
-                        </div>
-                        <button type="button" id="btnCompleteOrder" class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold shadow-card">Tandai Selesai</button>
+                <div class="px-4 sm:px-6 py-4 space-y-3 border-t border-slate-200 bg-slate-50">
+                    <div id="error_checkout" class="hidden text-center text-sm font-semibold text-red-600"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            id="btnJadwalkanPesanan"
+                            type="button"
+                            onclick="jadwalkanPesanan()"
+                            class="btn-secondary"
+                        >
+                            <i class="bi bi-calendar-event text-lg"></i>
+                            <span>Jadwalkan</span>
+                        </button>
+                        <button
+                            id="btnBayarSekarang"
+                            type="button"
+                            onclick="prosesTransaksi()"
+                            class="btn-prim"
+                        >
+                            <i class="bi bi-credit-card text-lg"></i>
+                            <span>Bayar Sekarang</span>
+                        </button>
+                    </div>
+                    <div id="orderCompleteBox" class="hidden p-3 border border-green-300 rounded-lg bg-green-50">
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Jadwal Pesanan Section -->
+    <div class="mt-6">
+        <div class="bg-white shadow-md rounded-xl border border-slate-200 overflow-hidden">
+            <div class="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-widest font-bold text-slate-400">Jadwal</p>
+                    <h3 class="text-lg sm:text-xl font-bold text-slate-900 mt-2">Pesanan Terjadwal</h3>
+                </div>
+                <button
+                    id="btnRefreshScheduledOrders"
+                    type="button"
+                    onclick="loadScheduledOrders()"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-lg hover:shadow-sm border border-slate-200 transition-all duration-200 cursor-pointer"
+                >
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span class="hidden sm:inline">Refresh</span>
+                </button>
+            </div>
+            <div id="scheduledOrdersContainer" class="px-4 sm:px-6 py-4 min-h-[200px]">
+                <!-- Scheduled orders rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
