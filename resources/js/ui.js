@@ -190,8 +190,14 @@ function bindModals() {
     });
 
     // Close modal when form is submitted successfully
+    // NOTE: do NOT auto-close for AJAX-handled forms (data-ajax="true") or when `preventDefault()` was used
     document.querySelectorAll(".modal form").forEach((form) => {
-        form.addEventListener("submit", function () {
+        form.addEventListener("submit", function (e) {
+            // If a handler prevented default or form is marked as AJAX-handled, skip auto-close.
+            if (e.defaultPrevented || form.dataset.ajax === "true") {
+                return;
+            }
+
             const modal = this.closest(".modal");
             if (modal && modal.id) {
                 setTimeout(() => {

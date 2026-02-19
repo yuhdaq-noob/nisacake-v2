@@ -1,43 +1,18 @@
-/**
- * Inventory Management Module
- *
- * SOLID Principles Applied:
- * 1. Single Responsibility Principle (SRP)
- *    - Each function has one clear purpose (loadMaterials, loadHistory, etc.)
- *    - Separate utility functions for formatting and calculations
- *
- * 2. Open/Closed Principle (OCP)
- *    - Status determination is extensible without modifying core logic
- *    - Price resolution uses configuration objects
- *
- * 3. Liskov Substitution Principle (LSP)
- *    - API response handling works with both array and Resource format
- *
- * 4. Interface Segregation Principle (ISP)
- *    - Functions accept only the parameters they need
- *    - Utility functions are small and focused
- *
- * 5. Dependency Inversion Principle (DIP)
- *    - Depends on abstractions (API endpoints) not concrete implementations
- *    - Uses utility functions from utils.js and ui.js
- *
- * Best Practices:
- * - Async/await for better readability
- * - Error handling with try/catch
- * - Consistent naming conventions (camelCase)
- * - Documentation with JSDoc comments
- * - Separation of concerns (data fetching, rendering, event handling)
- * - DRY principle (Don't Repeat Yourself)
- */
-
 import "./bootstrap";
 import "./api.js";
 import { getAuthHeaders, formatNumber } from "./utils.js";
 import { closeModal } from "./ui.js";
+import {
+    handleSessionExpired,
+    showSuccess,
+    showErrorToast,
+    showWarning,
+} from "./notifications.js";
 
 const apiMaterials = "/api/materials";
 const apiHistory = "/api/stocks/history";
 const apiAddStock = "/api/stocks/add";
+const apiReduceStock = "/api/materials/reduce";
 const apiMaterialPrice = "/api/materials";
 const apiPriceHistory = "/api/materials/price-history";
 
@@ -136,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadHistory();
     loadPriceHistory();
     attachPriceEditHandler();
+
 });
 
 /**
@@ -159,8 +135,7 @@ async function loadMaterials() {
             },
         });
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
         let materials = await response.json();
@@ -222,6 +197,17 @@ async function loadMaterials() {
         if (selectBahan) {
             selectBahan.innerHTML = htmlOption;
         }
+        // Keep the "Catat Kerusakan" select in sync with restock dropdown (if present)
+        const selectKurang = document.getElementById("selectKurang");
+        if (selectKurang) {
+            selectKurang.innerHTML = htmlOption;
+            // initialize stock info for selected value
+            try {
+                updateKurangStockInfo(selectKurang.value);
+            } catch (e) {
+                /* noop if helper not defined yet */
+            }
+        }
     } catch (error) {
         console.error("Error loading materials:", error);
         // Show user-friendly error message
@@ -243,8 +229,7 @@ async function loadHistory() {
             },
         });
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
         let logs = await response.json();
@@ -320,12 +305,41 @@ if (formRestock) {
     formRestock.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const data = {
-            material_id: document.getElementById("selectBahan").value,
-            amount: document.getElementById("inputJumlah").value,
-            description:
-                document.getElementById("inputKet").value || "Manual Restock",
+        // clear inline errors
+        showFieldError("error_restock_material", "");
+        showFieldError("error_restock_amount", "");
+        showFieldError("error_restock_description", "");
+
+        const materialId = document.getElementById("selectBahan").value;
+        const amount = Number(document.getElementById("inputJumlah").value);
+        const description = (
+            document.getElementById("inputKet").value || ""
+        ).trim();
+        const submitBtn = formRestock.querySelector('button[type="submit"]');
+
+        // client-side validation (consistent UX)
+        if (!materialId) {
+            showFieldError(
+                "error_restock_material",
+                "Pilih bahan terlebih dahulu.",
+            );
+            return;
+        }
+        if (!amount || Number.isNaN(amount) || amount < 1) {
+            showFieldError(
+                "error_restock_amount",
+                "Jumlah harus berupa angka >= 1.",
+            );
+            return;
+        }
+
+        const payload = {
+            material_id: materialId,
+            amount: amount,
+            description: description || "Manual Restock",
         };
+
+        if (submitBtn) submitBtn.disabled = true;
 
         try {
             const response = await fetch(apiAddStock, {
@@ -334,33 +348,224 @@ if (formRestock) {
                     "Content-Type": "application/json",
                     ...getAuthHeaders(),
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify(payload),
             });
+
             if (response.status === 401) {
-                alert("Sesi login telah berakhir. Silakan login kembali.");
-                window.location.href = "/login";
+                handleSessionExpired();
                 return;
             }
 
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
 
             if (response.ok) {
-                alert("Stock added successfully!");
+                showSuccess("Stock added successfully!");
                 formRestock.reset();
                 closeModal("modalRestock");
                 loadMaterials();
                 loadHistory();
+            } else if (response.status === 422 && result.errors) {
+                for (const [field, messages] of Object.entries(result.errors)) {
+                    const msg = Array.isArray(messages)
+                        ? messages.join("; ")
+                        : messages;
+                    if (field === "amount")
+                        showFieldError("error_restock_amount", msg);
+                    else if (field === "description")
+                        showFieldError("error_restock_description", msg);
+                    else if (field === "material_id")
+                        showFieldError("error_restock_material", msg);
+                    else showErrorToast(msg);
+                }
             } else {
-                alert(
+                showErrorToast(
                     "Failed to add stock: " +
                         (result.message || JSON.stringify(result)),
                 );
             }
         } catch (error) {
             console.error(error);
-            alert(
+            showErrorToast(
                 "System error occurred. Please check the console for details.",
             );
+        } finally {
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+}
+
+/**
+ * Helper to show/hide field-level inline errors in modal forms
+ */
+function showFieldError(id, message) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!message) {
+        el.classList.add("hidden");
+        el.innerText = "";
+    } else {
+        el.classList.remove("hidden");
+        el.innerText = message;
+    }
+}
+
+/**
+ * Update 'Catat Kerusakan' modal info & constraints based on selected material
+ */
+function updateKurangStockInfo(materialId) {
+    const infoEl = document.getElementById("kurangStockInfo");
+    const amountEl = document.getElementById("kurangAmount");
+    if (!infoEl || !amountEl) return;
+
+    if (!materialId) {
+        infoEl.textContent = "Sisa: —";
+        amountEl.removeAttribute("max");
+        amountEl.placeholder = "Contoh: 5";
+        amountEl.value = "";
+        amountEl.disabled = false;
+        return;
+    }
+
+    const mat = materialMap.get(String(materialId));
+
+    if (!mat) {
+        infoEl.textContent = "Sisa: —";
+        amountEl.removeAttribute("max");
+        amountEl.value = "";
+        return;
+    }
+
+    infoEl.textContent = `Sisa: ${mat.current_stock} ${mat.unit || ""}`;
+    amountEl.max = mat.current_stock;
+    amountEl.placeholder = `Maks: ${mat.current_stock}`;
+    amountEl.disabled = mat.current_stock <= 0;
+}
+
+// Attach change listener to 'selectKurang' (if present)
+const selectKurang = document.getElementById("selectKurang");
+if (selectKurang) {
+    selectKurang.addEventListener("change", (e) => {
+        updateKurangStockInfo(e.target.value);
+        showFieldError("error_kurang_material", "");
+    });
+}
+
+// AJAX handler for "Catat Kerusakan" (client-side validation + server handling)
+const formKurangStok = document.getElementById("formKurangStok");
+if (formKurangStok) {
+    formKurangStok.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // clear previous inline errors
+        showFieldError("error_kurang_material", "");
+        showFieldError("error_kurang_amount", "");
+        showFieldError("error_kurang_description", "");
+
+        const materialId = document.getElementById("selectKurang").value;
+        const amountInput = document.getElementById("kurangAmount");
+        const descriptionInput = document.getElementById("kurangDescription");
+        const submitButton = document.getElementById("btnSimpanKurang");
+
+        const amount = Number(amountInput.value);
+        const description = (descriptionInput.value || "").trim();
+
+        // client-side validations
+        if (!materialId) {
+            showFieldError(
+                "error_kurang_material",
+                "Pilih bahan terlebih dahulu.",
+            );
+            return;
+        }
+
+        const mat = materialMap.get(String(materialId));
+        if (!mat) {
+            showFieldError("error_kurang_material", "Bahan tidak ditemukan.");
+            return;
+        }
+
+        if (!amount || Number.isNaN(amount) || amount < 1) {
+            showFieldError(
+                "error_kurang_amount",
+                "Jumlah harus berupa angka >= 1.",
+            );
+            return;
+        }
+
+        if (amount > mat.current_stock) {
+            showFieldError(
+                "error_kurang_amount",
+                "Jumlah melebihi stok tersedia.",
+            );
+            return;
+        }
+
+        if (!description) {
+            showFieldError(
+                "error_kurang_description",
+                "Keterangan wajib diisi.",
+            );
+            return;
+        }
+
+        const payload = {
+            material_id: materialId,
+            amount: amount,
+            description: description,
+        };
+
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+            const response = await fetch(apiReduceStock, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders(),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.status === 401) {
+                handleSessionExpired();
+                return;
+            }
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                showSuccess("Catatan pengurangan stok disimpan.");
+                formKurangStok.reset();
+                closeModal("modalKurangStok");
+                loadMaterials();
+                loadHistory();
+            } else if (response.status === 422 && result.errors) {
+                // show field-level errors returned by backend
+                for (const [field, messages] of Object.entries(result.errors)) {
+                    const msg = Array.isArray(messages)
+                        ? messages.join("; ")
+                        : messages;
+                    if (field === "amount")
+                        showFieldError("error_kurang_amount", msg);
+                    else if (field === "description")
+                        showFieldError("error_kurang_description", msg);
+                    else if (field === "material_id")
+                        showFieldError("error_kurang_material", msg);
+                    else showErrorToast(msg);
+                }
+            } else {
+                const message =
+                    result.message ||
+                    "Gagal menyimpan catatan pengurangan stok.";
+                showErrorToast(message);
+            }
+        } catch (err) {
+            console.error(err);
+            showErrorToast(
+                "System error occurred. Please check the console for details.",
+            );
+        } finally {
+            if (submitButton) submitButton.disabled = false;
         }
     });
 }
@@ -437,7 +642,7 @@ function attachPriceEditHandler() {
                 Number.isNaN(pricePerBaseUnit) ||
                 pricePerBaseUnit <= 0
             ) {
-                alert("Harga harus berupa angka dan lebih dari 0.");
+                showWarning("Harga harus berupa angka dan lebih dari 0.");
                 return;
             }
 
@@ -459,8 +664,7 @@ function attachPriceEditHandler() {
                     },
                 );
                 if (response.status === 401) {
-                    alert("Sesi login telah berakhir. Silakan login kembali.");
-                    window.location.href = "/login";
+                    handleSessionExpired();
                     return;
                 }
 
@@ -469,7 +673,7 @@ function attachPriceEditHandler() {
                 if (!response.ok) {
                     const message =
                         result.message || "Gagal memperbarui harga.";
-                    alert(message);
+                    showErrorToast(message);
                     const material = materialMap.get(String(materialId));
                     if (material) {
                         cell.innerHTML = buildPriceCellHtml(material);
@@ -483,7 +687,7 @@ function attachPriceEditHandler() {
                 loadPriceHistory();
             } catch (error) {
                 console.error(error);
-                alert("Terjadi kesalahan saat memperbarui harga.");
+                showErrorToast("Terjadi kesalahan saat memperbarui harga.");
                 const material = materialMap.get(String(materialId));
                 if (material) {
                     cell.innerHTML = buildPriceCellHtml(material);
@@ -506,8 +710,7 @@ async function loadPriceHistory() {
             },
         });
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
         if (!response.ok) {

@@ -45,7 +45,7 @@
                 <img
                   src="/images/logo.png"
                   alt="NC Logo"
-                  class="h-12 w-12 rounded-xl shadow-md object-cover"
+                  class="sidebar-logo h-12 w-12 rounded-xl shadow-md object-cover"
                 />
                 <div class="sidebar-textual leading-tight">
                     <p class="text-base font-bold text-slate-900 tracking-tight">Nisa Cake</p>
@@ -222,6 +222,84 @@
         [data-sidebar][data-collapsed="true"] .nav-link:hover::after {
             opacity: 1;
             transform: translateY(-50%) scale(1);
+        }
+
+        /* ========== Collapsed sidebar refinements (more professional) ========== */
+        [data-sidebar][data-collapsed="true"] .sidebar-logo {
+            height: 40px;
+            width: 40px;
+            transition: width 200ms ease, height 200ms ease, transform 200ms ease;
+        }
+
+        /* Make icon area consistent and give subtle hover affordance */
+        [data-sidebar][data-collapsed="true"] .nav-link .text-lg {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25rem; /* 36px */
+            height: 2.25rem;
+            border-radius: 0.6rem;
+            transition: background-color 160ms, color 160ms, transform 160ms, box-shadow 160ms;
+        }
+
+        [data-sidebar][data-collapsed="true"] .nav-link:hover .text-lg {
+            background-color: rgba(2, 6, 23, 0.04);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(2, 6, 23, 0.06);
+            color: var(--primary-color);
+        }
+
+        /* Stronger active affordance for icon-only mode */
+        [data-sidebar][data-collapsed="true"] .nav-link[aria-current="page"] .text-lg {
+            background: linear-gradient(135deg, rgba(3,105,161,0.12), rgba(15,118,110,0.08));
+            color: var(--primary-color);
+            box-shadow: 0 8px 30px rgba(3,105,161,0.12);
+        }
+
+        /* Tooltip arrow + smoother tooltip */
+        [data-sidebar][data-collapsed="true"] .nav-link::before {
+            content: '';
+            position: absolute;
+            left: calc(100% + 0.44rem);
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg) scale(0.95);
+            width: 8px;
+            height: 8px;
+            background: #0f1724;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 150ms, transform 150ms;
+            z-index: 49;
+            border-radius: 1px;
+        }
+
+        [data-sidebar][data-collapsed="true"] .nav-link:hover::before {
+            opacity: 1;
+            transform: translateY(-50%) rotate(45deg) scale(1);
+        }
+
+        /* Softer tooltip look */
+        [data-sidebar][data-collapsed="true"] .nav-link::after {
+            box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
+            transform-origin: left center;
+            transition: opacity 160ms cubic-bezier(0.2,0.9,0.2,1), transform 160ms cubic-bezier(0.2,0.9,0.2,1);
+        }
+
+        /* Logout icon polish in collapsed mode */
+        [data-sidebar][data-collapsed="true"] .logout-btn i {
+            display: inline-flex;
+            width: 2.25rem;
+            height: 2.25rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.6rem;
+            transition: background 120ms, transform 120ms, box-shadow 120ms;
+        }
+
+        [data-sidebar][data-collapsed="true"] .logout-btn:hover i {
+            background-color: rgba(2, 6, 23, 0.04);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(2, 6, 23, 0.06);
         }
 
         [data-sidebar] .collapse-icon--collapse {

@@ -8,20 +8,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-
 // Controller untuk proses login dan logout user
 class LoginController extends Controller
 {
-    // Menampilkan form login
     public function index(): View
     {
         return view('login');
     }
 
-    // Autentikasi user (cek username & password)
     public function authenticate(Request $request): JsonResponse
     {
-        // Validasi input login
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
@@ -29,9 +25,10 @@ class LoginController extends Controller
 
         $credentials = $request->only('username', 'password');
 
-        // Coba login dengan kredensial
+
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Regenerasi session agar aman
+            $request->session()->regenerate();
+            /** @var \App\Models\User $user */
             $user = Auth::user();
             // Create sanctum token for API access (follows Single Responsibility principle)
             $token = $user->createToken('auth-token')->plainTextToken;

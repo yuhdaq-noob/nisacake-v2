@@ -6,6 +6,11 @@
 import "./bootstrap";
 import "./api.js";
 import { getAuthHeaders, formatRupiah, showError, hideError } from "./utils.js";
+import {
+    handleSessionExpired,
+    showSuccess,
+    showErrorToast,
+} from "./notifications.js";
 
 const apiProducts = "/api/products";
 const apiOrder = "/api/buat-pesanan";
@@ -18,10 +23,10 @@ const apiCompleteOrder = "/api/orders";
  * Follows Single Responsibility: Only handles token setup
  */
 function ensureAuthToken() {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem("auth_token");
     if (!token) {
-        console.warn('No auth token found. Redirecting to login...');
-        window.location.href = '/login';
+        console.warn("No auth token found. Redirecting to login...");
+        window.location.href = "/login";
     }
     return token;
 }
@@ -29,6 +34,62 @@ function ensureAuthToken() {
 let cart = [];
 let productsDB = [];
 let lastOrderId = null;
+let isLoadingScheduledOrders = false;
+
+/**
+ * Sync cart card height with order input card (desktop only).
+ * - sets inline height on `#cartCard` to match `#orderInputCard`
+ * - removes inline height on small screens
+ */
+function syncCartHeight() {
+    const inputCard = document.getElementById("orderInputCard");
+    const cartCard = document.getElementById("cartCard");
+    if (!inputCard || !cartCard) return;
+
+    // Only enforce equal height on large screens (lg breakpoint)
+    if (window.innerWidth < 1024) {
+        cartCard.style.height = "";
+        return;
+    }
+
+    cartCard.style.height = `${inputCard.offsetHeight}px`;
+}
+
+/** tiny debounce helper for resize events */
+function debounce(fn, wait = 100) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+    };
+}
+
+/**
+ * JSDoc typedefs
+ * @typedef {{product_id:number, name:string, price:number, quantity:number}} CartItem
+ * @typedef {{customer_name:string, order_date?:string, items:CartItem[]}} OrderPayload
+ */
+
+/**
+ * Date/time helper utilities (single responsibility)
+ */
+function pad(n) {
+    return String(n).padStart(2, "0");
+}
+
+function toLocalInput(date) {
+    // date: Date -> "YYYY-MM-DDTHH:MM" (suitable for <input type=datetime-local>)
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function roundUpToSlot(date = new Date(), minutes = 15) {
+    const ms = 1000 * 60 * minutes;
+    return new Date(Math.ceil(date.getTime() / ms) * ms);
+}
+
+function nowLocalInputRounded(slotMinutes = 15) {
+    return toLocalInput(roundUpToSlot(new Date(), slotMinutes));
+}
 
 /**
  * Validation helper functions
@@ -40,49 +101,70 @@ const FormValidator = {
             return { valid: false, error: "Nama pelanggan harus diisi." };
         }
         if (name.length > 255) {
-            return { valid: false, error: "Nama pelanggan maksimal 255 karakter." };
+            return {
+                valid: false,
+                error: "Nama pelanggan maksimal 255 karakter.",
+            };
         }
         return { valid: true };
     },
 
-    validateOrderDate: (date, futureOnly = false) => {
-        if (!date) {
-            return { valid: false, error: "Tanggal pesanan harus diisi." };
+    validateOrderDate: (dateTimeStr, futureOnly = false) => {
+        if (!dateTimeStr) {
+            return {
+                valid: false,
+                error: "Tanggal/waktu pesanan harus diisi.",
+            };
         }
+
+        const d = new Date(dateTimeStr);
+        if (Number.isNaN(d.getTime())) {
+            return { valid: false, error: "Format tanggal/waktu tidak valid." };
+        }
+
         if (futureOnly) {
-            const selectedDate = new Date(date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (selectedDate < today) {
-                return { valid: false, error: "Tanggal jadwal harus hari ini atau di masa depan." };
+            const now = new Date();
+            // backend requires scheduled_at to be after now (StoreOrderRequest::after:now)
+            if (d <= now) {
+                return {
+                    valid: false,
+                    error: "Waktu jadwal harus di masa depan.",
+                };
             }
         }
+
         return { valid: true };
     },
 
     validateCart: (cart) => {
         if (cart.length === 0) {
-            return { valid: false, error: "Keranjang kosong. Tambahkan produk terlebih dahulu." };
+            return {
+                valid: false,
+                error: "Keranjang kosong. Tambahkan produk terlebih dahulu.",
+            };
         }
         return { valid: true };
     },
 
     validateProduct: (inputVal, qty) => {
         if (!inputVal || isNaN(qty) || qty < 1) {
-            return { valid: false, error: "Pilih produk dan masukkan jumlah yang valid." };
+            return {
+                valid: false,
+                error: "Pilih produk dan masukkan jumlah yang valid.",
+            };
         }
         return { valid: true };
-    }
+    },
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!document.getElementById("product_list")) return;
 
-    // Set default date untuk order_date ke hari ini
+    // Set default order_date ke waktu sekarang (rounded ke next slot) dan tetapkan min agar tidak bisa pilih waktu lampau
     const orderDateInput = document.getElementById("order_date");
     if (orderDateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        orderDateInput.value = today;
+        orderDateInput.value = nowLocalInputRounded(15);
+        orderDateInput.min = toLocalInput(new Date());
     }
 
     try {
@@ -93,8 +175,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
 
@@ -126,7 +207,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Load scheduled orders after products are loaded
         await loadScheduledOrders();
-
     } catch (error) {
         console.error("Error:", error);
         showError(
@@ -149,6 +229,44 @@ document.addEventListener("DOMContentLoaded", async () => {
         .getElementById("order_date")
         ?.addEventListener("input", () => hideError("error_order_date"));
 
+    // Attach Test Telegram button in Kasir (confirmation + feedback)
+    const btnTestTelegramKasir = document.getElementById(
+        "btnTestTelegramKasir",
+    );
+    if (btnTestTelegramKasir) {
+        btnTestTelegramKasir.addEventListener("click", async () => {
+            const confirmSend = window.confirm(
+                "Kirim pesan tes Telegram sekarang?",
+            );
+            if (!confirmSend) return;
+
+            btnTestTelegramKasir.disabled = true;
+            try {
+                const res = await fetch("/admin/telegram/test", {
+                    method: "GET",
+                    headers: { ...getAuthHeaders() },
+                });
+                const body = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    showSuccess("Cek Telegram Anda.");
+                } else {
+                    showErrorToast(
+                        "Gagal: " +
+                            (body.message || body.error || res.statusText),
+                    );
+                }
+            } catch (err) {
+                console.error(err);
+                showErrorToast("Terjadi kesalahan saat mengirim test.");
+            } finally {
+                btnTestTelegramKasir.disabled = false;
+            }
+        });
+    }
+
+    // Sync cart height with input card and attach resize handler
+    syncCartHeight();
+    window.addEventListener("resize", debounce(syncCartHeight, 120));
 });
 
 function tambahKeKeranjang() {
@@ -210,6 +328,8 @@ function renderCart() {
                 </td>
             </tr>`;
         totalDisplay.innerText = "Rp 0";
+        // sync heights so cart card matches input card even when empty
+        syncCartHeight();
         return;
     }
 
@@ -252,9 +372,15 @@ function hapusItem(index) {
  * @param {string} successMessage - Message to show on success
  * @param {Function} onSuccess - Callback on successful submission
  */
-async function submitOrderRequest(endpoint, payload, submitButton, successMessage, onSuccess) {
-    const submitLabel = submitButton?.querySelector('span');
-    const originalLabel = submitLabel?.innerText || '';
+async function submitOrderRequest(
+    endpoint,
+    payload,
+    submitButton,
+    successMessage,
+    onSuccess,
+) {
+    const submitLabel = submitButton?.querySelector("span");
+    const originalLabel = submitLabel?.innerText || "";
 
     try {
         submitButton.disabled = true;
@@ -271,20 +397,16 @@ async function submitOrderRequest(endpoint, payload, submitButton, successMessag
 
         // Handle authentication errors
         if (response.status === 401) {
-            showError(
-                "error_checkout",
-                "Sesi login telah berakhir. Silakan login kembali.",
-            );
-            setTimeout(() => window.location.href = "/login", 1000);
+            handleSessionExpired();
             return;
         }
 
         // Check if response is valid JSON before parsing
         if (!response.ok) {
-            const contentType = response.headers.get('content-type');
+            const contentType = response.headers.get("content-type");
             let errorMessage = "An error occurred.";
 
-            if (contentType?.includes('application/json')) {
+            if (contentType?.includes("application/json")) {
                 const result = await response.json();
 
                 // Handle Laravel validation errors (422 status)
@@ -298,7 +420,10 @@ async function submitOrderRequest(endpoint, payload, submitButton, successMessag
                             errorMessages.push(messages);
                         }
                     }
-                    errorMessage = errorMessages.join('; ') || result.message || errorMessage;
+                    errorMessage =
+                        errorMessages.join("; ") ||
+                        result.message ||
+                        errorMessage;
                 } else {
                     errorMessage = result.message || errorMessage;
                 }
@@ -309,14 +434,13 @@ async function submitOrderRequest(endpoint, payload, submitButton, successMessag
         }
 
         const result = await response.json();
-        alert(successMessage);
+        showSuccess(successMessage);
         if (onSuccess) onSuccess(result);
-
     } catch (error) {
         console.error("Error submitting order:", error);
         showError(
             "error_checkout",
-            "System error occurred. Please check your connection."
+            "System error occurred. Please check your connection.",
         );
     } finally {
         if (submitButton) submitButton.disabled = false;
@@ -355,7 +479,11 @@ async function prosesTransaksi() {
         return;
     }
 
-    const payload = { customer_name: customerName, order_date: orderDate, items: cart };
+    const payload = {
+        customer_name: customerName,
+        order_date: orderDate,
+        items: cart,
+    };
     const submitButton = document.getElementById("btnBayarSekarang");
 
     await submitOrderRequest(
@@ -369,7 +497,14 @@ async function prosesTransaksi() {
                 lastOrderId = createdOrderId;
                 showCompleteBox(createdOrderId);
             }
-        }
+
+            // Reset UI / kosongkan keranjang setelah pesanan berhasil diproses
+            cart = [];
+            renderCart();
+            document.getElementById("customer_name").value = "";
+            document.getElementById("product_input").value = "";
+            document.getElementById("quantity").value = "1";
+        },
     );
 }
 
@@ -386,17 +521,22 @@ async function prosesTransaksi() {
 function formatDateTimeForBackend(dateString) {
     if (!dateString) return null;
 
-    // Parse date without timezone conversion (treat as local date)
-    const parts = dateString.split('-');
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10);
-    const day = parseInt(parts[2], 10);
+    // If already contains time (datetime-local format), try to normalize and return
+    const datetimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    if (datetimeRegex.test(dateString)) {
+        return dateString;
+    }
 
-    // Format: YYYY-MM-DDTHH:MM
-    const monthStr = String(month).padStart(2, '0');
-    const dayStr = String(day).padStart(2, '0');
+    // If date-only (YYYY-MM-DD), append midnight
+    const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateOnlyRegex.test(dateString)) {
+        return `${dateString}T00:00`;
+    }
 
-    return `${year}-${monthStr}-${dayStr}T00:00`;
+    // Fallback: try parsing and formatting (local time)
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return toLocalInput(parsed);
 }
 
 /**
@@ -435,7 +575,7 @@ async function jadwalkanPesanan() {
     const payload = {
         customer_name: customerName,
         scheduled_at: formattedDateTime,
-        items: cart
+        items: cart,
     };
 
     const submitButton = document.getElementById("btnJadwalkanPesanan");
@@ -454,7 +594,7 @@ async function jadwalkanPesanan() {
             renderCart();
             // Refresh scheduled orders after pre-order is created
             loadScheduledOrders();
-        }
+        },
     );
 }
 
@@ -479,32 +619,49 @@ async function completeLastOrder() {
             },
         );
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
         if (response.ok) {
-            alert(`Pesanan #${lastOrderId} berhasil ditandai selesai.`);
+            showSuccess(`Pesanan #${lastOrderId} berhasil ditandai selesai.`);
             lastOrderId = null;
             const box = document.getElementById("orderCompleteBox");
             if (box) box.classList.add("hidden");
         } else {
             const result = await response.json().catch(() => ({}));
-            alert(result.message || "Gagal menandai pesanan selesai.");
+            showErrorToast(result.message || "Gagal menandai pesanan selesai.");
         }
     } catch (error) {
         console.error(error);
-        alert("Terjadi kesalahan saat memperbarui status pesanan.");
+        showErrorToast("Terjadi kesalahan saat memperbarui status pesanan.");
     }
 }
 
 /**
  * Load and render scheduled pre-orders
  * Follows Single Responsibility: Fetches and delegates to render
+ * UX: show loading spinner on refresh button, disable to prevent double-clicks,
+ * and surface error toast on failure.
  */
 async function loadScheduledOrders() {
     const container = document.getElementById("scheduledOrdersContainer");
+    const refreshBtn = document.getElementById("btnRefreshScheduledOrders");
     if (!container) return;
+
+    // prevent duplicate concurrent requests
+    if (isLoadingScheduledOrders) return;
+    isLoadingScheduledOrders = true;
+
+    // set loading UI on button
+    if (refreshBtn) {
+        refreshBtn.dataset.loading = "true";
+        refreshBtn.setAttribute("aria-busy", "true");
+        refreshBtn.classList.add("btn-loading");
+        refreshBtn.querySelector(".refresh-icon")?.classList.add("hidden");
+        refreshBtn
+            .querySelector(".refresh-spinner")
+            ?.classList.remove("hidden");
+    }
 
     try {
         const response = await fetch(apiPreOrder, {
@@ -515,13 +672,14 @@ async function loadScheduledOrders() {
 
         // Handle authentication errors
         if (response.status === 401) {
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
 
         // Handle non-OK responses (including 500 errors)
         if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
+            const errText = `Server error: ${response.status}`;
+            throw new Error(errText);
         }
 
         const rawData = await response.json();
@@ -534,11 +692,27 @@ async function loadScheduledOrders() {
         }
 
         renderScheduledOrders(container, scheduledOrders);
-
+        // micro-animation on refresh button (less noisy)
+        showRefreshSuccessAnimation();
     } catch (error) {
         console.error("Error loading scheduled orders:", error);
-        // Show empty state instead of error - this is OK if there's no pre-orders yet
+        showErrorToast("Gagal memuat pesanan terjadwal. Periksa koneksi.");
+        // preserve previous behavior: render empty state if no data
         renderScheduledOrders(container, []);
+    } finally {
+        // restore button UI
+        isLoadingScheduledOrders = false;
+        if (refreshBtn) {
+            refreshBtn.dataset.loading = "false";
+            refreshBtn.setAttribute("aria-busy", "false");
+            refreshBtn.classList.remove("btn-loading");
+            refreshBtn
+                .querySelector(".refresh-icon")
+                ?.classList.remove("hidden");
+            refreshBtn
+                .querySelector(".refresh-spinner")
+                ?.classList.add("hidden");
+        }
     }
 }
 
@@ -560,39 +734,53 @@ function renderScheduledOrders(container, orders) {
     let html = `<div class="space-y-2 sm:space-y-3">`;
 
     orders.forEach((order) => {
-        const scheduledDate = new Date(order.scheduled_at).toLocaleDateString('id-ID', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+        const scheduledAt = new Date(order.scheduled_at || Date.now());
+        const datePart = scheduledAt.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+        const timePart = scheduledAt.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
         });
 
-        const itemsList = order.items?.map(item =>
-            `${item.product?.name ?? 'Unknown'} (${item.quantity}x)`
-        ).join(', ') || '-';
+        const itemsList =
+            order.items
+                ?.map(
+                    (item) =>
+                        `${item.product?.name ?? "Unknown"} (${item.quantity}x)`,
+                )
+                .join(", ") || "-";
 
         html += `
-            <div class="border border-slate-200 rounded-lg p-2.5 sm:p-3 bg-slate-50 hover:bg-slate-100 transition-colors">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+            <div class="bg-white rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition duration-200 border border-slate-200 p-3">
+                <div class="flex justify-between items-start gap-3 mb-2">
                     <div class="min-w-0 flex-1">
                         <p class="text-[0.7rem] font-semibold text-slate-600">ID #${order.id}</p>
-                        <p class="text-xs sm:text-sm font-semibold text-slate-900 mt-0.5 sm:mt-1 truncate">${order.customer_name}</p>
+                        <p class="text-lg font-semibold text-slate-900 mt-1 truncate flex items-center">
+                            <i class="bi bi-person-circle text-slate-400 mr-2"></i>
+                            ${order.customer_name || "-"}
+                        </p>
                     </div>
-                    <div class="text-right flex-shrink-0">
-                        <p class="text-[0.7rem] text-slate-600">Jadwal</p>
-                        <p class="text-xs sm:text-sm font-semibold text-slate-900 mt-0.5">${scheduledDate}</p>
+
+                    <div class="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                        <span class="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 uppercase mr-2">TERJADWAL</span>
+                        <div class="mt-1 text-right">
+                            <div class="text-sm font-medium text-gray-800">${datePart}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">${timePart}</div>
+                        </div>
                     </div>
                 </div>
-                <p class="text-[0.65rem] sm:text-xs text-slate-600 mb-2 line-clamp-2">Items: ${itemsList}</p>
-                <div class="flex gap-2 justify-between sm:justify-end items-center flex-wrap">
-                    <p class="text-xs sm:text-sm font-bold text-cyan-700">${formatRupiah(order.total_price || 0)}</p>
+
+                <p class="text-xs text-slate-500 mb-2 line-clamp-2">Items: ${itemsList}</p>
+
+                <div class="border-t border-slate-100/50 mt-3 pt-3 flex items-center justify-between gap-3 flex-wrap">
+                    <p class="text-xl font-bold text-slate-900">${formatRupiah(order.total_price || 0)}</p>
                     <button
                         type="button"
                         onclick="completeScheduledOrder(${order.id})"
-                        class="btn-prim"
-                        style="padding: 0.5rem 0.75rem; font-size: 0.75rem; white-space: nowrap;"
+                        class="inline-flex items-center px-5 py-2.5 font-semibold shadow-sm hover:shadow-md transition bg-emerald-600 hover:bg-emerald-700 text-white rounded-md"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="w-3 h-3">
                             <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
@@ -619,24 +807,27 @@ async function completeScheduledOrder(orderId) {
 
     try {
         // Call executePreOrder endpoint which handles entire conversion logic
-        const submitResponse = await fetch(`/api/orders/${orderId}/execute-preorder`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...getAuthHeaders(),
+        const submitResponse = await fetch(
+            `/api/orders/${orderId}/execute-preorder`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders(),
+                },
             },
-        });
+        );
 
         if (submitResponse.status === 401) {
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
 
         if (!submitResponse.ok) {
-            const contentType = submitResponse.headers.get('content-type');
+            const contentType = submitResponse.headers.get("content-type");
             let errorMessage = "An error occurred.";
 
-            if (contentType?.includes('application/json')) {
+            if (contentType?.includes("application/json")) {
                 const result = await submitResponse.json();
                 errorMessage = result.message || errorMessage;
             }
@@ -645,15 +836,14 @@ async function completeScheduledOrder(orderId) {
             return;
         }
 
-        alert(`Pesanan dari jadwal #${orderId} berhasil diproses.`);
+        showSuccess(`Pesanan dari jadwal #${orderId} berhasil diproses.`);
         // Refresh jadwal pesanan list agar pesanan yang sudah dieksekusi otomatis hilang
         await loadScheduledOrders();
-
     } catch (error) {
         console.error("Error executing pre-order:", error);
         showError(
             "error_checkout",
-            error.message || "System error occurred. Please try again."
+            error.message || "System error occurred. Please try again.",
         );
     }
 }
@@ -661,6 +851,30 @@ async function completeScheduledOrder(orderId) {
 const completeButton = document.getElementById("btnCompleteOrder");
 if (completeButton) {
     completeButton.addEventListener("click", completeLastOrder);
+}
+
+/**
+ * Show a micro animation (check) on the Refresh button to confirm success (less noisy)
+ */
+function showRefreshSuccessAnimation() {
+    const btn = document.getElementById("btnRefreshScheduledOrders");
+    if (!btn) return;
+    if (btn.dataset.loading === "true") return; // don't animate while loading
+
+    const icon = btn.querySelector(".refresh-icon");
+    const confirm = btn.querySelector(".refresh-confirm");
+
+    btn.classList.add("btn-success-flash");
+    icon?.classList.add("hidden");
+    confirm?.classList.remove("hidden");
+    confirm?.classList.add("show");
+
+    setTimeout(() => {
+        confirm?.classList.remove("show");
+        confirm?.classList.add("hidden");
+        icon?.classList.remove("hidden");
+        btn.classList.remove("btn-success-flash");
+    }, 900);
 }
 
 // Expose functions to global scope so inline onclick in Blade works when bundled by Vite

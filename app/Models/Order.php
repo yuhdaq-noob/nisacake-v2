@@ -22,6 +22,7 @@ class Order extends Model
         'total_price',
         'total_hpp',
         'scheduled_at',
+        'is_notified',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Order extends Model
         'scheduled_at' => 'datetime',
         'total_price' => 'decimal:2',
         'total_hpp' => 'decimal:2',
+        'is_notified' => 'boolean',
     ];
 
     public function items(): HasMany

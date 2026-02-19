@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('customer_name');    // Nama Pemesan
             $table->date('order_date');         // Tanggal Pesan
             $table->string('status')->default('pending'); // Status: pending, processing, done
-
             $table->integer('total_price')->default(0); // Total Harga Jual (Omzet)
             $table->integer('total_hpp')->default(0);   // Total Modal (Costing) -> Dihitung Otomatis nanti
 

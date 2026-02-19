@@ -44,6 +44,7 @@ import {
     isThisYear,
     getAuthHeaders,
 } from "./utils.js";
+import { handleSessionExpired, showErrorToast } from "./notifications.js";
 
 const apiUrl = "/api/reports";
 const overheadApiUrl = "/api/overhead-settings";
@@ -67,8 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             headers: getAuthHeaders(),
         });
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
         let data = await response.json();
@@ -105,6 +105,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
     } catch (error) {
         console.error("Error loading report data:", error);
+        showErrorToast(
+            "Gagal memuat data laporan. Silakan refresh untuk mencoba lagi.",
+        );
         const tbody = document.getElementById("tabelLaporan");
         if (tbody) {
             tbody.innerHTML =
@@ -127,8 +130,7 @@ async function loadOverheadSettings() {
         });
 
         if (response.status === 401) {
-            alert("Sesi login telah berakhir. Silakan login kembali.");
-            window.location.href = "/login";
+            handleSessionExpired();
             return;
         }
 
@@ -146,6 +148,7 @@ async function loadOverheadSettings() {
         renderOverheadTable(items);
     } catch (error) {
         console.error("Error loading overhead settings:", error);
+        showErrorToast("Gagal memuat data overhead.");
         tbody.innerHTML =
             '<tr><td colspan="3" class="text-center py-4 text-rose-600"><i class="bi bi-exclamation-triangle-fill"></i><p class="text-xs mt-1">Gagal memuat data overhead.</p></td></tr>';
     }
