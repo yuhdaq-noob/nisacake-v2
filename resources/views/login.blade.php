@@ -12,7 +12,7 @@
 
     <div class="login-card">
         <div class="photo-wrapper">
-            <img src="{{ asset('images/owner.jpg') }}" alt="Owner" class="owner-photo" id="ownerPhoto">
+            <img src="{{ asset('images/logo.png') }}" alt="Owner" class="owner-photo" id="ownerPhoto">
         </div>
         <h2>Halo, Ibu Nisa!</h2>
         <p>Selamat datang di dapur digital Anda. Mari kita mulai hari dengan semangat baru!</p>

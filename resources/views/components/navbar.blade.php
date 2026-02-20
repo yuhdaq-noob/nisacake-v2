@@ -7,10 +7,11 @@
 
     $navLinks = $links ?? ($navbarLinks ?? $defaultLinks);
     $activeKey = $active ?? null;
+    $dark = $dark ?? false;
 @endphp
 
 <!-- Mobile Top Bar -->
-<div class="fixed top-0 inset-x-0 z-40 bg-gradient-to-r from-white via-white to-slate-50/80 backdrop-blur-sm border-b border-slate-200 lg:hidden shadow-sm">
+<div class="{{ $dark ? 'navbar navbar--dark' : '' }} fixed top-0 inset-x-0 z-40 bg-gradient-to-r from-white via-white to-slate-50/80 backdrop-blur-sm border-b border-slate-200 lg:hidden shadow-sm">
     <div class="flex items-center justify-between h-16 px-5">
         <div class="flex items-center gap-3">
             <img
@@ -224,14 +225,14 @@
             transform: translateY(-50%) scale(1);
         }
 
-        /* ========== Collapsed sidebar refinements (more professional) ========== */
+        /* ========== Penyempurnaan sidebar terkolaps (lebih profesional) ========== */
         [data-sidebar][data-collapsed="true"] .sidebar-logo {
             height: 40px;
             width: 40px;
             transition: width 200ms ease, height 200ms ease, transform 200ms ease;
         }
 
-        /* Make icon area consistent and give subtle hover affordance */
+        /* Buat area ikon konsisten dan berikan efek hover halus */
         [data-sidebar][data-collapsed="true"] .nav-link .text-lg {
             display: inline-flex;
             align-items: center;
@@ -249,14 +250,14 @@
             color: var(--primary-color);
         }
 
-        /* Stronger active affordance for icon-only mode */
+        /* Penegasan status aktif yang lebih kuat untuk mode hanya-ikon */
         [data-sidebar][data-collapsed="true"] .nav-link[aria-current="page"] .text-lg {
             background: linear-gradient(135deg, rgba(3,105,161,0.12), rgba(15,118,110,0.08));
             color: var(--primary-color);
             box-shadow: 0 8px 30px rgba(3,105,161,0.12);
         }
 
-        /* Tooltip arrow + smoother tooltip */
+        /* Panah tooltip + tooltip yang lebih halus */
         [data-sidebar][data-collapsed="true"] .nav-link::before {
             content: '';
             position: absolute;
@@ -278,14 +279,14 @@
             transform: translateY(-50%) rotate(45deg) scale(1);
         }
 
-        /* Softer tooltip look */
+        /* Tampilan tooltip yang lebih lembut */
         [data-sidebar][data-collapsed="true"] .nav-link::after {
             box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
             transform-origin: left center;
             transition: opacity 160ms cubic-bezier(0.2,0.9,0.2,1), transform 160ms cubic-bezier(0.2,0.9,0.2,1);
         }
 
-        /* Logout icon polish in collapsed mode */
+        /* Perbaikan ikon logout pada mode terkolaps */
         [data-sidebar][data-collapsed="true"] .logout-btn i {
             display: inline-flex;
             width: 2.25rem;

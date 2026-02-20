@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\Log;
 class StockService
 {
     /**
-     * Add stock to material
+     * Tambah stok ke material
      */
     public function addStock(array $data): Material
     {
         return DB::transaction(function () use ($data) {
-            // Create stock log
+            // Buat log stok
             StockLog::create([
                 'material_id' => $data['material_id'],
                 'type' => StockLogType::IN->value,
@@ -25,7 +25,7 @@ class StockService
                 'description' => $data['description'],
             ]);
 
-            // Increment stock
+            // Tambah stok
             $material = Material::findOrFail($data['material_id']);
             $material->increment('current_stock', $data['amount']);
 
@@ -42,19 +42,19 @@ class StockService
     }
 
     /**
-     * Reduce stock from material with pessimistic locking to prevent race condition
+     * Kurangi stok material dengan penguncian pesimis untuk mencegah race condition
      *
      * @throws InsufficientStockException
      */
     public function reduceStock(array $data): Material
     {
         return DB::transaction(function () use ($data) {
-            // Lock material row for update to prevent race condition
+            // Kunci baris material untuk update agar tidak terjadi kondisi balapan
             $material = Material::where('id', $data['material_id'])
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // Check if stock is sufficient (inside transaction with lock)
+            // Periksa apakah stok mencukupi (dalam transaksi dengan kunci)
             if ($material->current_stock < $data['amount']) {
                 throw new InsufficientStockException(
                     $material->name,
@@ -63,10 +63,10 @@ class StockService
                 );
             }
 
-            // Decrement stock
+            // Kurangi stok
             $material->decrement('current_stock', $data['amount']);
 
-            // Create stock log
+            // Buat log stok
             StockLog::create([
                 'material_id' => $material->id,
                 'type' => StockLogType::OUT->value,

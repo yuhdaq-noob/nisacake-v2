@@ -1,20 +1,13 @@
 {{--
-  Alert Component - Enhanced Modern & Professional Notification Display
+    Komponen Alert — tampilan notifikasi modern dan profesional
 
-  SOLID Principles Applied:
-  - Single Responsibility: Component handles only alert display
-  - Open/Closed: Extensible through props (type, icon, dismissible, etc.)
-  - Liskov Substitution: Interchangeable alert types (success, error, warning, info)
-  - Interface Segregation: Props are focused and minimal
-  - Dependency Inversion: Depends on tailwind utilities, not specific implementations
-
-  Props:
-    - type: 'success', 'error', 'warning', 'info' (default: 'info')
-    - title: Alert heading (optional)
-    - message: Alert message text (required)
-    - icon: Custom icon class or leave empty for default
-    - dismissible: Boolean to show close button (default: false)
-    - id: Unique ID for dismissible alerts
+    Props:
+        - type: 'success', 'error', 'warning', 'info' (default: 'info')
+        - title: Judul alert (opsional)
+        - message: Isi pesan alert (wajib)
+        - icon: Kelas ikon kustom (opsional)
+        - dismissible: Jika true tampilkan tombol tutup
+        - id: ID unik untuk alert yang dapat ditutup
 --}}
 
 @props([
@@ -74,7 +67,7 @@ $accentColorMap = [
     role="alert"
     data-alert-type="{{ $type }}"
 >
-    {{-- Left Accent Border --}}
+    {{-- Border aksen kiri --}}
     <div class="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
         @switch($type)
             @case('success')
@@ -92,12 +85,12 @@ $accentColorMap = [
         @endswitch
     ></div>
 
-    {{-- Icon --}}
+    {{-- Ikon --}}
     <div class="flex-shrink-0 pt-0.5">
         <i class="bi bi-{{ $iconClass }} {{ $accentColorMap[$type] }} text-xl"></i>
     </div>
 
-    {{-- Content --}}
+    {{-- Konten --}}
     <div class="flex-1 min-w-0">
         @if($title)
             <p class="font-bold {{ $config['titleColor'] }} text-sm sm:text-base mb-0.5">
@@ -107,7 +100,7 @@ $accentColorMap = [
         <p class="text-sm {{ $config['textColor'] }} opacity-95 leading-relaxed font-medium">
             {{ $message }}
         </p>
-        {{-- Slot for additional content --}}
+        {{-- Slot untuk konten tambahan --}}
         @if($slot->isNotEmpty())
             <div class="mt-2.5 text-xs {{ $config['textColor'] }} opacity-85">
                 {{ $slot }}
@@ -115,7 +108,7 @@ $accentColorMap = [
         @endif
     </div>
 
-    {{-- Close Button --}}
+    {{-- Tombol tutup --}}
     @if($dismissible)
         <button
             type="button"
@@ -135,7 +128,7 @@ $accentColorMap = [
     @endif
 </div>
 
-{{-- Dismissible Alert Script --}}
+{{-- Skrip untuk alert yang bisa ditutup --}}
 @if($dismissible)
     @once
         <script>
@@ -151,7 +144,7 @@ $accentColorMap = [
                 }, 300);
             };
 
-            // Auto-close alerts after 5 seconds (except on user interaction)
+            // Tutup otomatis alert setelah 5 detik (kecuali ada interaksi pengguna)
             document.querySelectorAll('[data-alert-type]').forEach(alert => {
                 if (!alert.querySelector('button[onclick*="closeAlert"]')) return;
 

@@ -4,12 +4,8 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Name
+    | Nama Aplikasi
     |--------------------------------------------------------------------------
-    |
-    | This value is the name of your application, which will be used when the
-    | framework needs to place the application's name in a notification or
-    | other UI elements where an application name needs to be displayed.
     |
     */
 
@@ -17,12 +13,8 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Environment
+    | Environment Aplikasi
     |--------------------------------------------------------------------------
-    |
-    | This value determines the "environment" your application is currently
-    | running in. This may determine how you prefer to configure various
-    | services the application utilizes. Set this in your ".env" file.
     |
     */
 
@@ -30,12 +22,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Debug Mode
+    | Mode Debug Aplikasi
     |--------------------------------------------------------------------------
     |
-    | When your application is in debug mode, detailed error messages with
-    | stack traces will be shown on every error that occurs within your
-    | application. If disabled, a simple generic error page is shown.
+    | Jika aplikasi berada dalam mode debug, pesan error rinci dengan stack
+    | trace akan ditampilkan pada setiap kesalahan. Jika dimatikan, halaman
+    | error sederhana akan ditampilkan.
     |
     */
 
@@ -43,12 +35,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application URL
+    | URL Aplikasi
     |--------------------------------------------------------------------------
     |
-    | This URL is used by the console to properly generate URLs when using
-    | the Artisan command line tool. You should set this to the root of
-    | the application so that it's available within Artisan commands.
+    | URL ini digunakan oleh console untuk menghasilkan URL yang benar saat
+    | menggunakan Artisan. Tetapkan ini ke root aplikasi sehingga tersedia
+    | dalam perintah Artisan.
     |
     */
 
@@ -56,12 +48,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Timezone
+    | Zona Waktu Aplikasi
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | Tentukan zona waktu default aplikasi Anda, yang akan digunakan oleh
+    | fungsi tanggal/waktu PHP. Secara default di-set ke "UTC".
     |
     */
 
@@ -69,12 +60,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Locale Configuration
+    | Konfigurasi Locale Aplikasi
     |--------------------------------------------------------------------------
     |
-    | The application locale determines the default locale that will be used
-    | by Laravel's translation / localization methods. This option can be
-    | set to any locale for which you plan to have translation strings.
+    | Locale aplikasi menentukan locale default yang akan digunakan oleh
+    | metode terjemahan/lokalisasi Laravel. Pilih locale yang sesuai.
     |
     */
 
@@ -86,12 +76,8 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Encryption Key
+    | Kunci Enkripsi
     |--------------------------------------------------------------------------
-    |
-    | This key is utilized by Laravel's encryption services and should be set
-    | to a random, 32 character string to ensure that all encrypted values
-    | are secure. You should do this prior to deploying the application.
     |
     */
 
@@ -109,12 +95,6 @@ return [
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
     |--------------------------------------------------------------------------
-    |
-    | These configuration options determine the driver used to determine and
-    | manage Laravel's "maintenance mode" status. The "cache" driver will
-    | allow maintenance mode to be controlled across multiple machines.
-    |
-    | Supported drivers: "file", "cache"
     |
     */
 

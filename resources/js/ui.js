@@ -1,24 +1,11 @@
 /**
- * UI Layer - Drawer, Modal, and Notifications Management
- *
- * SOLID Principles Applied:
- * - Single Responsibility: Each function handles one UI concern (drawer, modal, notifications)
- * - Open/Closed: Extensible through data attributes without modifying core logic
- * - Liskov Substitution: All toggle methods follow same pattern
- * - Interface Segregation: Functions are focused and don't force unnecessary dependencies
- * - Dependency Inversion: Depends on HTML structure, not specific element types
- *
- * Best Practices:
- * - Separation of concerns (drawer, modal, notification logic)
- * - Event delegation for dynamic elements
- * - Proper cleanup and state management
- * - Accessibility support (aria-labels, roles)
- * - Smooth animations and transitions
+ * Layer UI — mengelola drawer, modal, dan notifikasi.
+ * Konfigurasi menggunakan atribut data-* pada elemen HTML.
  */
 
 /**
- * Toggle drawer open/close state
- * @param {boolean|undefined} open - Force open (true) or close (false), toggle if undefined
+ * Toggle drawer: buka/tutup
+ * @param {boolean|undefined} open - paksa buka (true) atau tutup (false), toggle jika undefined
  */
 function toggleDrawer(open) {
     const drawer = document.querySelector("[data-drawer]");
@@ -28,18 +15,18 @@ function toggleDrawer(open) {
     const isOpen = open ?? drawer.classList.contains("translate-x-0");
     const nextState = open !== undefined ? open : !isOpen;
 
-    // Update drawer position
+    // Perbarui posisi drawer
     drawer.classList.toggle("-translate-x-full", !nextState);
     drawer.classList.toggle("translate-x-0", nextState);
 
-    // Update backdrop visibility
+    // Perbarui visibilitas backdrop
     backdrop.classList.toggle("hidden", !nextState);
 
-    // Update ARIA attributes for accessibility
+    // Perbarui atribut ARIA untuk aksesibilitas
     drawer.setAttribute("aria-hidden", !nextState);
     backdrop.setAttribute("aria-hidden", !nextState);
 
-    // Prevent body scroll when drawer is open
+    // Cegah body menggulir saat drawer terbuka
     if (nextState) {
         document.body.style.overflow = "hidden";
     } else {
@@ -48,14 +35,14 @@ function toggleDrawer(open) {
 }
 
 /**
- * Bind drawer toggle functionality to elements
+ * Pasang event handler untuk drawer
  */
 function bindDrawer() {
     const toggleButtons = document.querySelectorAll("[data-drawer-toggle]");
     const closeButtons = document.querySelectorAll("[data-drawer-close]");
     const backdrop = document.querySelector("[data-drawer-backdrop]");
 
-    // Bind toggle buttons
+    // Pasang event pada tombol toggle
     toggleButtons.forEach((btn) => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -63,7 +50,7 @@ function bindDrawer() {
         });
     });
 
-    // Bind close buttons
+    // Pasang event pada tombol tutup
     closeButtons.forEach((btn) => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -71,10 +58,10 @@ function bindDrawer() {
         });
     });
 
-    // Close drawer when backdrop is clicked
+    // Tutup drawer saat backdrop diklik
     backdrop?.addEventListener("click", () => toggleDrawer(false));
 
-    // Close drawer when pressing Escape key
+    // Tutup drawer saat tombol Escape ditekan
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             const drawer = document.querySelector("[data-drawer]");
@@ -86,8 +73,8 @@ function bindDrawer() {
 }
 
 /**
- * Open a modal with animations
- * @param {string} id - Modal element ID
+ * Buka modal dengan animasi
+ * @param {string} id - ID elemen modal
  */
 function openModal(id) {
     const modal = document.getElementById(id);
@@ -95,7 +82,7 @@ function openModal(id) {
     const backdrop = modal.querySelector(".modal-backdrop");
     const panel = modal.querySelector(".modal-panel");
 
-    // Make modal visible for animation
+    // Tampilkan modal untuk animasi
     modal.classList.remove("hidden");
 
     requestAnimationFrame(() => {
@@ -112,13 +99,13 @@ function openModal(id) {
         }
     });
 
-    // Prevent body scroll
+    // Cegah body menggulir
     document.body.style.overflow = "hidden";
 }
 
 /**
- * Close a modal with animations
- * @param {string} id - Modal element ID
+ * Tutup modal dengan animasi
+ * @param {string} id - ID elemen modal
  */
 function closeModal(id) {
     const modal = document.getElementById(id);
@@ -138,7 +125,7 @@ function closeModal(id) {
         panel.classList.remove("translate-y-0", "scale-100");
     }
 
-    // Wait for animation to complete before hiding
+    // Tunggu animasi selesai sebelum menyembunyikan
     setTimeout(() => {
         modal.classList.add("hidden");
         document.body.style.overflow = "";
@@ -146,10 +133,10 @@ function closeModal(id) {
 }
 
 /**
- * Bind modal trigger and close functionality
+ * Pasang event untuk membuka dan menutup modal
  */
 function bindModals() {
-    // Open modal triggers
+    // Pemicu buka modal
     document.querySelectorAll("[data-modal-open]").forEach((trigger) => {
         trigger.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -158,7 +145,7 @@ function bindModals() {
         });
     });
 
-    // Close modal buttons
+    // Tombol tutup modal
     document.querySelectorAll("[data-modal-close]").forEach((btn) => {
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -167,7 +154,7 @@ function bindModals() {
         });
     });
 
-    // Close modal when clicking backdrop
+    // Tutup modal saat backdrop diklik
     document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
         backdrop.addEventListener("click", (e) => {
             if (e.target === backdrop) {
@@ -179,7 +166,7 @@ function bindModals() {
         });
     });
 
-    // Close modal when pressing Escape
+    // Tutup modal saat tombol Escape ditekan
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             const modal = document.querySelector(".modal:not(.hidden)");
@@ -189,11 +176,11 @@ function bindModals() {
         }
     });
 
-    // Close modal when form is submitted successfully
-    // NOTE: do NOT auto-close for AJAX-handled forms (data-ajax="true") or when `preventDefault()` was used
+    // Tutup modal saat form disubmit berhasil
+    // CATATAN: jangan auto-close untuk form yang ditangani AJAX (data-ajax="true") atau jika preventDefault() dipanggil
     document.querySelectorAll(".modal form").forEach((form) => {
         form.addEventListener("submit", function (e) {
-            // If a handler prevented default or form is marked as AJAX-handled, skip auto-close.
+            // Jika handler mencegah default atau form bertanda AJAX, lewati auto-close.
             if (e.defaultPrevented || form.dataset.ajax === "true") {
                 return;
             }
@@ -209,7 +196,7 @@ function bindModals() {
 }
 
 /**
- * Initialize all UI layer functionality
+ * Inisialisasi semua fungsi UI
  */
 export function initUiLayer() {
     bindDrawer();

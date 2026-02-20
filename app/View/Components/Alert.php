@@ -9,7 +9,7 @@ use Illuminate\View\Component;
 class Alert extends Component
 {
     /**
-     * Create a new component instance.
+     * Buat instance komponen baru.
      */
     public function __construct()
     {
@@ -17,7 +17,7 @@ class Alert extends Component
     }
 
     /**
-     * Get the view / contents that represent the component.
+     * Dapatkan view / isi yang merepresentasikan komponen.
      */
     public function render(): View|Closure|string
     {

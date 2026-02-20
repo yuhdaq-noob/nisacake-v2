@@ -1,7 +1,6 @@
 <?php
 
-// FIXME: PERHITUNGAN
-
+// (Catatan: perlu tinjauan perhitungan pada laporan)
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MaterialController;
@@ -9,25 +8,25 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Route;
 
-// Authentication Routes
+// Rute autentikasi
 Route::get('/login', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.post');
 
-// Protected Routes
+// Rute yang dilindungi (butuh autentikasi)
 Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Pages
+    // Halaman
     Route::get('/', fn () => redirect()->route('kasir'));
     Route::get('/kasir', fn () => view('kasir'))->name('kasir');
     Route::get('/gudang', [InventoryController::class, 'index'])->name('gudang');
 
-    // Telegram admin endpoints (Test & Health)
+    // Endpoint admin Telegram (Test & Health)
     Route::get('/admin/telegram/test', [\App\Http\Controllers\TelegramController::class, 'test'])->name('admin.telegram.test');
     Route::get('/admin/telegram/health', [\App\Http\Controllers\TelegramController::class, 'health'])->name('admin.telegram.health');
     Route::get('/laporan', fn () => view('laporan'))->name('laporan');
 
-    // API Endpoints
+    // Endpoint API
     Route::post('/materials/reduce', [MaterialController::class, 'reduceStock'])->name('materials.reduce');
     // FIXME: TIDAK DIPAKAI
     // UI gudang menggunakan endpoint API /api/stocks/add (via gudang.js), bukan web route ini.

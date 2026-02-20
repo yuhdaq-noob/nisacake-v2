@@ -1,7 +1,5 @@
 <?php
 
-// FIXME: PERHITUNGAN
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +16,6 @@ class Product extends Model
     protected $fillable = [
         'name',
         'selling_price',
-        // FIXME: LOL
         'production_cost',
         'overhead_cost_per_unit',
         'description',
@@ -31,7 +28,7 @@ class Product extends Model
     ];
 
     /**
-     * Bill of Materials (BOM) relationship
+     * Relasi Bill of Materials (BOM)
      */
     public function materials(): BelongsToMany
     {

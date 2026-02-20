@@ -16,7 +16,7 @@
 <body class="bg-slate-50 text-slate-900">
     <div class="min-h-screen flex lg:pl-72">
         <!-- Sidebar Navigation -->
-        <x-navbar active="{{ $active ?? null }}" />
+        <x-navbar active="{{ $active ?? null }}" dark="true" />
 
         <!-- Main Content -->
         <div class="flex-1 w-full">

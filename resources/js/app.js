@@ -1,10 +1,10 @@
 import "./bootstrap";
 
-// Import shared utilities (auth, formatting, validation)
+// Impor utilitas bersama (auth, formatting, validasi)
 import "./utils.js";
-// Import API helper to ensure login/logout token utilities are bundled.
+// Impor helper API agar utilitas login/logout ikut ter-bundle.
 import "./api.js";
-// Page-specific scripts are loaded per-page via Blade @vite to avoid double-loading
+// Skrip per-halaman dimuat via Blade @vite agar tidak double-load
 import { initUiLayer } from "./ui.js";
 
 document.addEventListener("DOMContentLoaded", () => {

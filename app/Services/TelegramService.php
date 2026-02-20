@@ -8,21 +8,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Telegram Service
- *
- * SOLID Principles Applied:
- * 1. Single Responsibility: Only handles Telegram API communication
- * 2. Open/Closed: Easy to extend for other message types
- * 3. Dependency Injection: Token and chat_id from config
- * 4. Liskov Substitution: Implements TelegramServiceContract interface
- * 5. Interface Segregation: Minimal interface with only essential methods
- * Dependency Inversion: Classes depend on TelegramServiceContract abstraction
- *
- * Best Practices:
- * - Strong typing with return types and parameter types
- * - Proper error handling and logging
- * - Configuration-driven (no hardcoded values)
- * - Immutable configuration values
+ * Layanan Telegram — menangani pengiriman pesan ke API Telegram.
+ * Konfigurasi token dan chat_id di `services.telegram`.
  */
 class TelegramService implements TelegramServiceContract
 {
@@ -41,13 +28,13 @@ class TelegramService implements TelegramServiceContract
         $this->chatId = $this->validateChatId(config('services.telegram.chat_id', ''));
     }
 
-    /**
-     * Validate and get token from config
-     *
-     * @param string $token The token value from config
-     * @return string The validated token
-     * @throws \InvalidArgumentException If token is invalid
-     */
+     /**
+      * Validasi dan ambil token dari konfigurasi
+      *
+          * @param string $token Token dari konfigurasi
+          * @return string Token yang sudah tervalidasi
+          * @throws \InvalidArgumentException Jika token kosong atau tidak valid
+      */
     private function validateToken(string $token): string
     {
         if (empty($token)) {
@@ -59,13 +46,13 @@ class TelegramService implements TelegramServiceContract
         return $token;
     }
 
-    /**
-     * Validate and get chat ID from config
-     *
-     * @param string $chatId The chat ID value from config
-     * @return string The validated chat ID
-     * @throws \InvalidArgumentException If chat ID is invalid
-     */
+     /**
+      * Validasi dan ambil chat ID dari konfigurasi
+      *
+          * @param string $chatId Chat ID dari konfigurasi
+          * @return string Chat ID yang sudah tervalidasi
+          * @throws \InvalidArgumentException Jika chat ID kosong atau tidak valid
+      */
     private function validateChatId(string $chatId): string
     {
         if (empty($chatId)) {
@@ -78,10 +65,10 @@ class TelegramService implements TelegramServiceContract
     }
 
     /**
-     * Send text message to Telegram
-     *
-     * @param string $message Message text (supports HTML formatting)
-     * @return bool True if sent successfully, false otherwise
+        * Kirim pesan teks ke Telegram (mendukung format HTML)
+        *
+        * @param string $message Isi pesan
+        * @return bool True jika terkirim, false jika gagal
      */
     public function sendMessage(string $message): bool
     {
@@ -90,7 +77,7 @@ class TelegramService implements TelegramServiceContract
             return false;
         }
 
-        // Escape message for HTML parse_mode to avoid Telegram rejecting it
+        // Escape pesan untuk mode HTML agar Telegram tidak menolak
         $message = $this->escapeForHtml($message);
 
         try {
@@ -118,10 +105,10 @@ class TelegramService implements TelegramServiceContract
     }
 
     /**
-     * Handle Telegram API response
-     *
-     * @param Response $response The HTTP response from Telegram API
-     * @return bool True if response was successful, false otherwise
+        * Tangani respons dari API Telegram
+        *
+        * @param Response $response Respons HTTP dari Telegram
+        * @return bool True jika respons sukses, false jika gagal
      */
     private function handleResponse(Response $response): bool
     {
@@ -141,9 +128,9 @@ class TelegramService implements TelegramServiceContract
     }
 
     /**
-     * Build Telegram API URL
+     * Bangun URL endpoint API Telegram
      *
-     * @return string The complete Telegram API endpoint URL
+     * @return string URL lengkap untuk mengirim permintaan
      */
     private function buildUrl(): string
     {
@@ -151,17 +138,17 @@ class TelegramService implements TelegramServiceContract
     }
 
     /**
-     * Escape text for Telegram HTML parse mode
+     * Escape teks untuk mode HTML Telegram
      */
     public function escapeForHtml(string $text): string
     {
-        // Convert special HTML chars to entities. Telegram supports a small subset of HTML;
-        // escaping avoids `Bad Request: can't parse message` when content contains <, >, & etc.
+        // Ubah karakter HTML khusus menjadi entitas. Telegram hanya mendukung subset HTML;
+        // escaping mencegah error "can't parse message" jika teks mengandung <, >, & dll.
         return htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
     /**
-     * Get configured chat ID
+     * Dapatkan chat ID yang dikonfigurasi
      */
     public function getChatId(): string
     {
@@ -169,7 +156,7 @@ class TelegramService implements TelegramServiceContract
     }
 
     /**
-     * Get configured token (masked for security)
+     * Dapatkan token (termask untuk keamanan)
      */
     public function getTokenMasked(): string
     {

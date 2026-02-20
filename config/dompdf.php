@@ -4,11 +4,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Settings
+    | Pengaturan DOMPDF
     |--------------------------------------------------------------------------
     |
-    | Set some default values. It is possible to add all defines that can be set
-    | in dompdf_config.inc.php. You can also override the entire config file.
+    | Nilai default untuk DOMPDF. Bisa ditambah/ubah sesuai kebutuhan.
     |
     */
     'show_warnings' => false,   // Throw an Exception on warnings from dompdf
@@ -22,73 +21,40 @@ return [
 
     'options' => [
         /**
-         * The location of the DOMPDF font directory
+         * Lokasi direktori font DOMPDF
          *
-         * The location of the directory where DOMPDF will store fonts and font metrics
-         * Note: This directory must exist and be writable by the webserver process.
-         * *Please note the trailing slash.*
-         *
-         * Notes regarding fonts:
-         * Additional .afm font metrics can be added by executing load_font.php from command line.
-         *
-         * Only the original "Base 14 fonts" are present on all pdf viewers. Additional fonts must
-         * be embedded in the pdf file or the PDF may not display correctly. This can significantly
-         * increase file size unless font subsetting is enabled. Before embedding a font please
-         * review your rights under the font license.
-         *
-         * Any font specification in the source HTML is translated to the closest font available
-         * in the font directory.
-         *
-         * The pdf standard "Base 14 fonts" are:
-         * Courier, Courier-Bold, Courier-BoldOblique, Courier-Oblique,
-         * Helvetica, Helvetica-Bold, Helvetica-BoldOblique, Helvetica-Oblique,
-         * Times-Roman, Times-Bold, Times-BoldItalic, Times-Italic,
-         * Symbol, ZapfDingbats.
+         * Tempat DOMPDF menyimpan font dan metriknya. Direktori harus ada dan
+         * dapat ditulisi oleh proses webserver.
          */
         'font_dir' => storage_path('fonts'), // advised by dompdf (https://github.com/dompdf/dompdf/pull/782)
 
         /**
-         * The location of the DOMPDF font cache directory
+         * Lokasi cache font DOMPDF
          *
-         * This directory contains the cached font metrics for the fonts used by DOMPDF.
-         * This directory can be the same as DOMPDF_FONT_DIR
-         *
-         * Note: This directory must exist and be writable by the webserver process.
+         * Direktori cache untuk metrik font; harus dapat ditulisi oleh webserver.
          */
         'font_cache' => storage_path('fonts'),
 
         /**
-         * The location of a temporary directory.
+         * Direktori sementara
          *
-         * The directory specified must be writeable by the webserver process.
-         * The temporary directory is required to download remote images and when
-         * using the PDFLib back end.
+         * Direktori ini harus dapat ditulisi dan diperlukan untuk download gambar
+         * remote serta operasi PDF tertentu.
          */
         'temp_dir' => sys_get_temp_dir(),
 
         /**
-         * ==== IMPORTANT ====
+         * ===== PENTING =====
          *
-         * dompdf's "chroot": Prevents dompdf from accessing system files or other
-         * files on the webserver.  All local files opened by dompdf must be in a
-         * subdirectory of this directory.  DO NOT set it to '/' since this could
-         * allow an attacker to use dompdf to read any files on the server.  This
-         * should be an absolute path.
-         * This is only checked on command line call by dompdf.php, but not by
-         * direct class use like:
-         * $dompdf = new DOMPDF();  $dompdf->load_html($htmldata); $dompdf->render(); $pdfdata = $dompdf->output();
+         * Pengaturan "chroot" mencegah DOMPDF mengakses file sistem di luar
+         * direktori ini. Jangan set ke '/'—harus path absolut yang aman.
          */
         'chroot' => realpath(base_path()),
 
         /**
-         * Protocol whitelist
+         * Daftar protokol yang diizinkan
          *
-         * Protocols and PHP wrappers allowed in URIs, and the validation rules
-         * that determine if a resouce may be loaded. Full support is not guaranteed
-         * for the protocols/wrappers specified
-         * by this array.
-         *
-         * @var array
+         * Protokol/URI yang boleh diakses oleh DOMPDF (mis. data:, file:, http:).
          */
         'allowed_protocols' => [
             'data://' => ['rules' => []],

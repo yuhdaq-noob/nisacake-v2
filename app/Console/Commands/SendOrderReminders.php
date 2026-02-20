@@ -25,7 +25,7 @@ class SendOrderReminders extends Command
     }
 
     /**
-     * Execute the console command
+     * Jalankan perintah konsol
      */
     public function handle(): int
     {
@@ -49,13 +49,13 @@ class SendOrderReminders extends Command
     }
 
     /**
-     * Send reminders to scheduled orders
+     * Kirim pengingat untuk pesanan yang terjadwal
      */
     private function sendReminders(bool $dryRun = false): int
     {
         $tomorrow = Carbon::tomorrow()->startOfDay();
 
-        // Query orders scheduled for tomorrow that haven't been notified yet
+        // Query pesanan yang dijadwalkan besok dan belum dinotifikasi
         $orders = Order::query()
             ->whereDate('scheduled_at', $tomorrow)
             ->where('status', '!=', 'completed')
@@ -78,7 +78,7 @@ class SendOrderReminders extends Command
     }
 
     /**
-     * Process individual order
+     * Proses satu per satu pesanan
      */
     private function processOrder(Order $order, bool $dryRun = false): void
     {
@@ -87,12 +87,12 @@ class SendOrderReminders extends Command
 
             $this->line("📤 Mengirim pesanan #{$order->id} ({$order->customer_name})...");
 
-            // Dispatch job to send message (allows retry/backoff and non-blocking behavior)
+            // Kirim job untuk mengirim pesan (mengizinkan retry/backoff dan non-blocking)
             if ($dryRun) {
                 $this->line('   [DRY RUN] Dispatching job (no DB changes)');
-                // simulate by not dispatching
+                // simulasi dengan tidak mendispatch
             } else {
-                // enqueue job — worker will mark order as notified on success
+                // masukkan job ke antrian — worker akan menandai order sebagai dinotifikasi saat sukses
                 \App\Jobs\SendTelegramReminderJob::dispatch($order->id, ['message' => $message])->onQueue('default');
                 $this->line('   ⏱ Dispatched job to queue');
             }
@@ -113,7 +113,7 @@ class SendOrderReminders extends Command
     }
 
     /**
-     * Build notification message
+     * Bangun pesan notifikasi
      */
     private function buildMessage(Order $order): string
     {
@@ -138,7 +138,7 @@ class SendOrderReminders extends Command
     }
 
     /**
-     * Display command summary
+     * Tampilkan ringkasan hasil perintah
      */
     private function displaySummary(): int
     {

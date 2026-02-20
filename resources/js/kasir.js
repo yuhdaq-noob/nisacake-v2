@@ -1,6 +1,6 @@
 /**
- * Point of Sale (POS) module.
- * Handles product selection, shopping cart, and order processing.
+ * Modul Kasir (POS)
+ * Menangani pemilihan produk, keranjang, dan proses pesanan.
  */
 
 import "./bootstrap";
@@ -18,9 +18,8 @@ const apiPreOrder = "/api/jadwal-pesanan";
 const apiCompleteOrder = "/api/orders";
 
 /**
- * Ensure authentication token is available
- * Checks localStorage for token, refreshes if needed
- * Follows Single Responsibility: Only handles token setup
+ * Pastikan token autentikasi tersedia
+ * Cek localStorage dan arahkan ke login bila tidak ada
  */
 function ensureAuthToken() {
     const token = localStorage.getItem("auth_token");
@@ -46,7 +45,7 @@ function syncCartHeight() {
     const cartCard = document.getElementById("cartCard");
     if (!inputCard || !cartCard) return;
 
-    // Only enforce equal height on large screens (lg breakpoint)
+    // Hanya terapkan tinggi yang sama pada layar besar (breakpoint lg)
     if (window.innerWidth < 1024) {
         cartCard.style.height = "";
         return;
@@ -55,7 +54,7 @@ function syncCartHeight() {
     cartCard.style.height = `${inputCard.offsetHeight}px`;
 }
 
-/** tiny debounce helper for resize events */
+/** Helper debounce kecil untuk event resize */
 function debounce(fn, wait = 100) {
     let t;
     return (...args) => {
@@ -65,20 +64,20 @@ function debounce(fn, wait = 100) {
 }
 
 /**
- * JSDoc typedefs
+ * Definisi tipe JSDoc
  * @typedef {{product_id:number, name:string, price:number, quantity:number}} CartItem
  * @typedef {{customer_name:string, order_date?:string, items:CartItem[]}} OrderPayload
  */
 
 /**
- * Date/time helper utilities (single responsibility)
+ * Helper tanggal/waktu
  */
 function pad(n) {
     return String(n).padStart(2, "0");
 }
 
 function toLocalInput(date) {
-    // date: Date -> "YYYY-MM-DDTHH:MM" (suitable for <input type=datetime-local>)
+    // date: Date -> "YYYY-MM-DDTHH:MM" (format untuk <input type=datetime-local>)
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
@@ -92,8 +91,7 @@ function nowLocalInputRounded(slotMinutes = 15) {
 }
 
 /**
- * Validation helper functions
- * Follows Single Responsibility: Each function validates a specific concern
+ * Helper validasi (masing-masing fungsi memvalidasi satu kepentingan)
  */
 const FormValidator = {
     validateCustomerName: (name) => {
@@ -124,7 +122,7 @@ const FormValidator = {
 
         if (futureOnly) {
             const now = new Date();
-            // backend requires scheduled_at to be after now (StoreOrderRequest::after:now)
+            // backend mengharuskan scheduled_at berada di masa depan (StoreOrderRequest::after:now)
             if (d <= now) {
                 return {
                     valid: false,
@@ -160,7 +158,7 @@ const FormValidator = {
 document.addEventListener("DOMContentLoaded", async () => {
     if (!document.getElementById("product_list")) return;
 
-    // Set default order_date ke waktu sekarang (rounded ke next slot) dan tetapkan min agar tidak bisa pilih waktu lampau
+    // Set default order_date ke waktu sekarang (dibulatkan ke slot berikutnya) dan set min agar tidak bisa pilih waktu lampau
     const orderDateInput = document.getElementById("order_date");
     if (orderDateInput) {
         orderDateInput.value = nowLocalInputRounded(15);
@@ -205,7 +203,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             datalist.appendChild(option);
         });
 
-        // Load scheduled orders after products are loaded
+        // Muat pesanan terjadwal setelah produk selesai dimuat
         await loadScheduledOrders();
     } catch (error) {
         console.error("Error:", error);
@@ -215,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
     }
 
-    // Clear error messages on user input
+    // Bersihkan pesan error saat pengguna memasukkan input
     document
         .getElementById("customer_name")
         ?.addEventListener("input", () => hideError("error_customer_name"));
@@ -229,7 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .getElementById("order_date")
         ?.addEventListener("input", () => hideError("error_order_date"));
 
-    // Attach Test Telegram button in Kasir (confirmation + feedback)
+    // Pasang tombol Tes Telegram di Kasir (konfirmasi + umpan balik)
     const btnTestTelegramKasir = document.getElementById(
         "btnTestTelegramKasir",
     );
@@ -364,7 +362,7 @@ function hapusItem(index) {
 
 /**
  * Process order submission (common logic for immediate order and pre-order)
- * Follows Single Responsibility & DRY: Shared order submission logic
+ * Mengikuti Single Responsibility & DRY: Logika bersama pengiriman order
  *
  * @param {string} endpoint - API endpoint to call
  * @param {Object} payload - Order data to submit
@@ -450,7 +448,7 @@ async function submitOrderRequest(
 
 /**
  * Process immediate order with stock deduction
- * Follows Single Responsibility: Only handles immediate order validation and submission
+ * Mengikuti Single Responsibility: Hanya menangani validasi dan pengiriman order langsung
  */
 async function prosesTransaksi() {
     hideError("error_customer_name");
@@ -510,7 +508,7 @@ async function prosesTransaksi() {
 
 /**
  * Process pre-order without stock deduction
- * Follows Single Responsibility: Only handles pre-order validation and submission
+ * Mengikuti Single Responsibility: Hanya menangani validasi dan pengiriman pre-order
  */
 /**
  * Format date string to match Laravel validation: Y-m-d\TH:i
@@ -541,7 +539,7 @@ function formatDateTimeForBackend(dateString) {
 
 /**
  * Process pre-order without stock deduction
- * Follows Single Responsibility: Only handles pre-order validation and submission
+ * Mengikuti Single Responsibility: Hanya menangani validasi dan pengiriman pre-order
  */
 async function jadwalkanPesanan() {
     hideError("error_customer_name");
@@ -639,7 +637,7 @@ async function completeLastOrder() {
 
 /**
  * Load and render scheduled pre-orders
- * Follows Single Responsibility: Fetches and delegates to render
+ * Mengikuti Single Responsibility: Mengambil data dan mendelegasikan ke fungsi render
  * UX: show loading spinner on refresh button, disable to prevent double-clicks,
  * and surface error toast on failure.
  */
@@ -718,7 +716,7 @@ async function loadScheduledOrders() {
 
 /**
  * Render scheduled pre-orders in the UI
- * Follows Single Responsibility: Only handles rendering logic
+ * Mengikuti Single Responsibility: Hanya menangani logika rendering
  */
 function renderScheduledOrders(container, orders) {
     if (orders.length === 0) {

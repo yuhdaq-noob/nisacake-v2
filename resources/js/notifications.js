@@ -1,7 +1,7 @@
 const DEFAULT_DURATION = 5000;
 
 /**
- * Backwards-compatible helpers (delegate to `showNotification` below).
+ * Helper kompatibel mundur (mendelegasikan ke `showNotification`).
  */
 export function showSuccess(message, options = {}) {
     return showNotification("success", "", message, {
@@ -50,7 +50,7 @@ export function handleSessionExpired() {
 }
 
 /**
- * Enhanced Notification/Toast System - Professional & Modern
+ * Sistem Notifikasi/Toast — modern dan ditingkatkan
  */
 
 const notificationConfig = {
@@ -69,7 +69,7 @@ const notificationConfig = {
 };
 
 /**
- * Create or get notification container
+ * Buat atau ambil container notifikasi
  * @returns {HTMLElement}
  */
 function getNotificationContainer() {
@@ -87,10 +87,10 @@ function getNotificationContainer() {
 }
 
 /**
- * Show notification/toast with enhanced styling
+ * Tampilkan notifikasi/toast dengan styling yang ditingkatkan
  * @param {string} type - 'success', 'error', 'warning', 'info'
- * @param {string} title - Notification title
- * @param {string} message - Notification message
+ * @param {string} title - Judul notifikasi
+ * @param {string} message - Isi notifikasi
  * @param {object} options - { duration: 5000, dismissible: true }
  */
 export function showNotification(
@@ -105,7 +105,7 @@ export function showNotification(
     const container = getNotificationContainer();
     const notificationId = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create notification element
+    // Buat elemen notifikasi
     const notification = document.createElement("div");
     notification.id = notificationId;
     notification.setAttribute("data-type", type);
@@ -113,7 +113,7 @@ export function showNotification(
         "alert-toast animate-slideInRight pointer-events-auto mb-3";
     notification.role = "alert";
 
-    // Build HTML content
+    // Bangun konten HTML
     const titleHTML = title
         ? `<p class="alert-title">${escapeHtml(title)}</p>`
         : "";
@@ -144,7 +144,7 @@ export function showNotification(
 
     container.appendChild(notification);
 
-    // Accessibility
+    // Aksesibilitas
     notification.setAttribute(
         "aria-live",
         type === "error" ? "assertive" : "polite",
@@ -152,7 +152,7 @@ export function showNotification(
     notification.tabIndex = 0;
     notification.style.setProperty("--notif-duration", `${duration}ms`);
 
-    // Progress bar (visual timer)
+    // Progress bar (indikator waktu visual)
     let closeTimeout;
     let progressEl;
 
@@ -170,7 +170,7 @@ export function showNotification(
         closeTimeout = null;
     }
 
-    // Pause/resume on hover
+    // Pause/lanjutkan saat hover
     if (dismissible && duration > 0) {
         notification.addEventListener("mouseenter", () => {
             if (closeTimeout) clearTimeout(closeTimeout);
@@ -190,8 +190,8 @@ export function showNotification(
 }
 
 /**
- * Close a notification
- * @param {string} notificationId - ID of notification to close
+ * Tutup notifikasi
+ * @param {string} notificationId - ID notifikasi yang akan ditutup
  */
 export function closeNotification(notificationId) {
     const notification = document.getElementById(notificationId);
@@ -210,7 +210,7 @@ export function closeNotification(notificationId) {
 }
 
 /**
- * Escape HTML special characters
+ * Escape karakter khusus HTML
  * @param {string} text
  * @returns {string}
  */
@@ -225,7 +225,7 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
-// Expose globally for accessibility
+// Ekspos secara global untuk aksesibilitas
 window.closeNotification = closeNotification;
 window.showNotification = showNotification;
 

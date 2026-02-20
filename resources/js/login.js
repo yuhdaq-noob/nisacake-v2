@@ -1,6 +1,6 @@
 /**
- * Login page module.
- * Handles authentication form submission and user login.
+ * Modul halaman Login
+ * Menangani submit form autentikasi dan proses login.
  */
 
 import "./bootstrap";
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const passEl = document.getElementById("passwordInput");
     if (passEl) passEl.focus();
 
-    // Toggle password visibility
+    // Toggle visibilitas password
     const toggleBtn = document.getElementById("togglePassword");
     const eyeIcon = document.getElementById("eyeIcon");
     if (toggleBtn && passEl && eyeIcon) {
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Smooth transition for loading overlay
+    // Transisi halus untuk overlay loading
     const overlay = document.getElementById("loadingOverlay");
     if (overlay) {
         overlay.style.transition = "opacity 0.5s ease, visibility 0.5s";

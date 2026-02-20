@@ -8,40 +8,28 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | Chunk size
+        | Ukuran Chunk
         |--------------------------------------------------------------------------
         |
-        | When using FromQuery, the query is automatically chunked.
-        | Here you can specify how big the chunk should be.
+        | Saat menggunakan FromQuery, query akan diproses per-chunk. Atur ukuran
+        | chunk di sini.
         |
         */
         'chunk_size' => 1000,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Pre-calculate formulas during export
-        |--------------------------------------------------------------------------
-        */
+        /* Pre-calculate formulas selama ekspor */
         'pre_calculate_formulas' => false,
 
         /*
         |--------------------------------------------------------------------------
-        | Enable strict null comparison
+        | Perbandingan null ketat
         |--------------------------------------------------------------------------
         |
-        | When enabling strict null comparison empty cells ('') will
-        | be added to the sheet.
+        | Jika aktif, sel kosong ('') akan dianggap sebagai nilai kosong pada sheet.
         */
         'strict_null_comparison' => false,
 
-        /*
-        |--------------------------------------------------------------------------
-        | CSV Settings
-        |--------------------------------------------------------------------------
-        |
-        | Configure e.g. delimiter, enclosure and line ending for CSV exports.
-        |
-        */
+        /* Pengaturan CSV untuk ekspor (delimiter, enclosure, line ending) */
         'csv' => [
             'delimiter' => ',',
             'enclosure' => '"',
@@ -53,14 +41,7 @@ return [
             'test_auto_detect' => true,
         ],
 
-        /*
-        |--------------------------------------------------------------------------
-        | Worksheet properties
-        |--------------------------------------------------------------------------
-        |
-        | Configure e.g. default title, creator, subject,...
-        |
-        */
+        /* Properti worksheet (title, creator, subject, dsb.) */
         'properties' => [
             'creator' => '',
             'lastModifiedBy' => '',
@@ -78,51 +59,23 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | Read Only
+        | Mode Baca Saja (imports)
         |--------------------------------------------------------------------------
         |
-        | When dealing with imports, you might only be interested in the
-        | data that the sheet exists. By default we ignore all styles,
-        | however if you want to do some logic based on style data
-        | you can enable it by setting read_only to false.
+        | Jika aktif, impor hanya membaca data tanpa memproses style.
         |
         */
         'read_only' => true,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ignore Empty
-        |--------------------------------------------------------------------------
-        |
-        | When dealing with imports, you might be interested in ignoring
-        | rows that have null values or empty strings. By default rows
-        | containing empty strings or empty values are not ignored but can be
-        | ignored by enabling the setting ignore_empty to true.
-        |
-        */
+        /* Abaikan baris kosong saat impor jika diperlukan */
         'ignore_empty' => false,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Heading Row Formatter
-        |--------------------------------------------------------------------------
-        |
-        | Configure the heading row formatter.
-        | Available options: none|slug|custom
-        |
-        */
+        /* Formatter baris heading (none|slug|custom) */
         'heading_row' => [
             'formatter' => 'slug',
         ],
 
-        /*
-        |--------------------------------------------------------------------------
-        | CSV Settings
-        |--------------------------------------------------------------------------
-        |
-        | Configure e.g. delimiter, enclosure and line ending for CSV imports.
-        |
-        */
+        /* Pengaturan CSV untuk impor (delimiter, enclosure, encoding) */
         'csv' => [
             'delimiter' => null,
             'enclosure' => '"',
@@ -151,14 +104,7 @@ return [
             'company' => '',
         ],
 
-        /*
-       |--------------------------------------------------------------------------
-       | Cell Middleware
-       |--------------------------------------------------------------------------
-       |
-       | Configure middleware that is executed on getting a cell value
-       |
-       */
+        /* Middleware sel: jalankan middleware saat membaca nilai sel */
         'cells' => [
             'middleware' => [
                 // \Maatwebsite\Excel\Middleware\TrimCellValue::class,
@@ -170,11 +116,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Extension detector
+    | Detektor Ekstensi
     |--------------------------------------------------------------------------
     |
-    | Configure here which writer/reader type should be used when the package
-    | needs to guess the correct type based on the extension alone.
+    | Tentukan jenis reader/writer yang dipilih berdasarkan ekstensi file.
     |
     */
     'extension_detector' => [
@@ -211,16 +156,7 @@ return [
     | Value Binder
     |--------------------------------------------------------------------------
     |
-    | PhpSpreadsheet offers a way to hook into the process of a value being
-    | written to a cell. In there some assumptions are made on how the
-    | value should be formatted. If you want to change those defaults,
-    | you can implement your own default value binder.
-    |
-    | Possible value binders:
-    |
-    | [x] Maatwebsite\Excel\DefaultValueBinder::class
-    | [x] PhpOffice\PhpSpreadsheet\Cell\StringValueBinder::class
-    | [x] PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder::class
+    | Hooks untuk menentukan bagaimana nilai ditulis ke sel (formatter default).
     |
     */
     'value_binder' => [
@@ -308,24 +244,9 @@ return [
     */
     'transactions' => [
         'handler' => 'db',
-        'db' => [
-            'connection' => null,
+        'cache' => [
+            'driver' => 'memory',
         ],
-    ],
-
-    'temporary_files' => [
-
-        /*
-        |--------------------------------------------------------------------------
-        | Local Temporary Path
-        |--------------------------------------------------------------------------
-        |
-        | When exporting and importing files, we use a temporary file, before
-        | storing reading or downloading. Here you can customize that path.
-        | permissions is an array with the permission flags for the directory (dir)
-        | and the create file (file).
-        |
-        */
         'local_path' => storage_path('framework/cache/laravel-excel'),
 
         /*

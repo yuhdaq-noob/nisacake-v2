@@ -1,12 +1,10 @@
 /**
- * Shared utility functions used across multiple modules.
+ * Fungsi utilitas bersama yang dipakai di beberapa modul.
  */
 
-// FIXME: PERHITUNGAN
-
 /**
- * Get auth headers from localStorage if available.
- * Used across gudang.js, kasir.js, and laporan.js
+ * Ambil header otentikasi dari localStorage bila tersedia.
+ * Digunakan di gudang.js, kasir.js, dan laporan.js
  */
 export const getAuthHeaders = () => {
     if (typeof window !== "undefined" && window.getAuthHeaders) {
@@ -39,7 +37,7 @@ export const formatNumber = (angka) =>
     new Intl.NumberFormat("id-ID").format(angka);
 
 /**
- * Check if date is today
+ * Periksa apakah tanggal adalah hari ini
  */
 export const isToday = (dateString) => {
     const date = new Date(dateString);
@@ -52,7 +50,7 @@ export const isToday = (dateString) => {
 };
 
 /**
- * Check if date is in last 7 days
+ * Periksa apakah tanggal berada dalam 7 hari terakhir
  */
 export const isLast7Days = (dateString) => {
     const date = new Date(dateString);
@@ -66,7 +64,7 @@ export const isLast7Days = (dateString) => {
 };
 
 /**
- * Check if date is in current month
+ * Periksa apakah tanggal berada pada bulan ini
  */
 export const isThisMonth = (dateString) => {
     const date = new Date(dateString);
@@ -78,7 +76,7 @@ export const isThisMonth = (dateString) => {
 };
 
 /**
- * Check if date is in last month
+ * Periksa apakah tanggal berada pada bulan lalu
  */
 export const isLastMonth = (dateString) => {
     const date = new Date(dateString);
@@ -93,7 +91,7 @@ export const isLastMonth = (dateString) => {
 };
 
 /**
- * Check if date is in current year
+ * Periksa apakah tanggal berada pada tahun ini
  */
 export const isThisYear = (dateString) => {
     const date = new Date(dateString);
@@ -102,7 +100,7 @@ export const isThisYear = (dateString) => {
 };
 
 /**
- * Validate if a date string is in valid format (YYYY-MM-DD).
+ * Validasi apakah string tanggal valid (YYYY-MM-DD).
  */
 export const isValidDate = (dateString) => {
     const date = new Date(dateString);
@@ -110,7 +108,7 @@ export const isValidDate = (dateString) => {
 };
 
 /**
- * Format date to Indonesian format (DD/MM/YYYY).
+ * Format tanggal ke format Indonesia (DD/MM/YYYY).
  */
 export const formatDateIndo = (dateString) => {
     const date = new Date(dateString);
@@ -122,7 +120,7 @@ export const formatDateIndo = (dateString) => {
 };
 
 /**
- * Error message display helpers
+ * Helper untuk menampilkan/menyembunyikan pesan error
  */
 export const showError = (elementId, message) => {
     const el = document.getElementById(elementId);

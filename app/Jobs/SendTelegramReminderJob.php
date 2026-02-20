@@ -18,7 +18,7 @@ class SendTelegramReminderJob implements ShouldQueue
 
     public int $tries = 5;
 
-    // exponential backoff in seconds
+    // pengaturan backoff eksponensial (detik)
     public function backoff(): array
     {
         return [60, 300, 900, 3600];
@@ -37,7 +37,7 @@ class SendTelegramReminderJob implements ShouldQueue
     {
         $order = Order::with('items.product')->find($this->orderId);
 
-        // create a queued log entry (attempts = 0)
+        // buat entri log antrian (attempts = 0)
         $log = NotificationLog::create([
             'channel' => 'telegram',
             'order_id' => $this->orderId,
@@ -46,13 +46,13 @@ class SendTelegramReminderJob implements ShouldQueue
             'attempts' => 0,
         ]);
 
-        // build and escape message
+        // bangun dan escape pesan
         $message = $this->payload['message'] ?? '';
 
         try {
             $sent = $telegram->sendMessage($message);
 
-            // update log
+            // perbarui log
             $log->update([
                 'response' => ['ok' => $sent],
                 'attempts' => $log->attempts + 1,
@@ -65,7 +65,7 @@ class SendTelegramReminderJob implements ShouldQueue
             }
 
             if (! $sent) {
-                // throw to allow queue retry/backoff
+                // lempar exception agar antrian melakukan retry/backoff
                 throw new \Exception('Telegram API returned false');
             }
         } catch (\Throwable $ex) {
@@ -77,14 +77,14 @@ class SendTelegramReminderJob implements ShouldQueue
                 'status' => 'failed',
             ]);
 
-            // rethrow to trigger Laravel retry/backoff
+            // lempar ulang agar Laravel menjalankan retry/backoff
             throw $ex;
         }
     }
 
     public function failed(\Throwable $exception)
     {
-        // final failure, ensure log exists and mark failed
+        // kegagalan akhir: pastikan log ada dan tandai sebagai gagal
         NotificationLog::create([
             'channel' => 'telegram',
             'order_id' => $this->orderId,

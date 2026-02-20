@@ -104,25 +104,24 @@ function buildPriceCellHtml(mat) {
     `;
 }
 
-// Load inventory data on page initialization
+// Muat data inventori saat halaman inisialisasi
 document.addEventListener("DOMContentLoaded", () => {
     if (!document.getElementById("tabelStok")) return;
     loadMaterials();
     loadHistory();
     loadPriceHistory();
     attachPriceEditHandler();
-
 });
 
 /**
- * Load material inventory table and restock modal dropdown.
- * Implements SRP by focusing solely on data loading and rendering.
+ * Muat tabel inventori bahan dan opsi modal restock.
+ * Sesuai SRP: hanya fokus pada pemuatan data & render.
  */
 async function loadMaterials() {
     const tbody = document.getElementById("tabelStok");
     const selectBahan = document.getElementById("selectBahan");
 
-    // Show loading state
+    // Tampilkan status loading
     if (tbody) {
         tbody.innerHTML =
             '<tr><td colspan="5" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-700"></div><p class="mt-2 text-slate-500 text-sm">Memuat data...</p></td></tr>';
@@ -140,7 +139,7 @@ async function loadMaterials() {
         }
         let materials = await response.json();
 
-        // Handle both array and object with .data property (Resource format)
+        // Tangani respons array atau object dengan properti .data (format Resource)
         if (!Array.isArray(materials)) {
             if (materials.data && Array.isArray(materials.data)) {
                 materials = materials.data;
@@ -158,7 +157,7 @@ async function loadMaterials() {
         materials.forEach((mat) => {
             materialMap.set(String(mat.id), mat);
 
-            // Determine status indicator using utility classes (SOLID - Open/Closed Principle)
+            // Tentukan indikator status menggunakan kelas utilitas
             let statusClass = "status-badge status-badge--success";
             let statusText = "Optimal";
             let statusIcon = '<i class="bi bi-check-circle-fill"></i>';
@@ -188,7 +187,7 @@ async function loadMaterials() {
             htmlOption += `<option value="${mat.id}">${mat.name} (${mat.unit})</option>`;
         });
 
-        // Render data (check if elements exist before setting innerHTML)
+        // Render data (cek elemen sebelum set innerHTML)
         if (tbody) {
             tbody.innerHTML =
                 htmlTabel ||
@@ -197,7 +196,7 @@ async function loadMaterials() {
         if (selectBahan) {
             selectBahan.innerHTML = htmlOption;
         }
-        // Keep the "Catat Kerusakan" select in sync with restock dropdown (if present)
+        // Sinkronkan select "Catat Kerusakan" dengan dropdown restock (jika ada)
         const selectKurang = document.getElementById("selectKurang");
         if (selectKurang) {
             selectKurang.innerHTML = htmlOption;
@@ -205,7 +204,7 @@ async function loadMaterials() {
             try {
                 updateKurangStockInfo(selectKurang.value);
             } catch (e) {
-                /* noop if helper not defined yet */
+                /* noop jika helper belum terdefinisi */
             }
         }
     } catch (error) {
@@ -219,7 +218,7 @@ async function loadMaterials() {
 }
 
 /**
- * Load stock transaction history log.
+ * Muat riwayat transaksi stok.
  */
 async function loadHistory() {
     try {
@@ -234,7 +233,7 @@ async function loadHistory() {
         }
         let logs = await response.json();
 
-        // Handle both array and object with .data property (Resource format)
+        // Tangani format array atau objek dengan properti .data (format Resource)
         if (!Array.isArray(logs)) {
             if (logs.data && Array.isArray(logs.data)) {
                 logs = logs.data;
@@ -305,7 +304,7 @@ if (formRestock) {
     formRestock.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // clear inline errors
+        // bersihkan error inline
         showFieldError("error_restock_material", "");
         showFieldError("error_restock_amount", "");
         showFieldError("error_restock_description", "");
@@ -317,7 +316,7 @@ if (formRestock) {
         ).trim();
         const submitBtn = formRestock.querySelector('button[type="submit"]');
 
-        // client-side validation (consistent UX)
+        // validasi sisi-klien (konsisten untuk UX)
         if (!materialId) {
             showFieldError(
                 "error_restock_material",

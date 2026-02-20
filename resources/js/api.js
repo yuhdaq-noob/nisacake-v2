@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// FIXME: PERHITUNGAN
+// Utilitas API — autentikasi dan helper login/logout
 
 /**
- * Set global auth token: saves to localStorage and applies to axios headers.
+ * Pasang token auth global: simpan ke localStorage dan terapkan ke header axios.
  */
 export function setAuthToken(token) {
     if (token) {
@@ -21,7 +21,7 @@ export function getAuthHeaders() {
 }
 
 /**
- * Login via API and persist token for subsequent requests.
+ * Login melalui API dan simpan token untuk request berikutnya.
  */
 export async function apiLogin(username, password) {
     const response = await axios.post("/api/login", { username, password });
@@ -32,7 +32,7 @@ export async function apiLogin(username, password) {
 }
 
 /**
- * Logout via API and clear local token.
+ * Logout melalui API dan hapus token lokal.
  */
 export async function apiLogout() {
     try {
@@ -42,7 +42,7 @@ export async function apiLogout() {
     }
 }
 
-// Expose helpers globally for simple usage in legacy scripts/templates
+// Ekspor helper ke global untuk penggunaan di skrip/templat lama
 if (typeof window !== "undefined") {
     window.apiLogin = apiLogin;
     window.apiLogout = apiLogout;

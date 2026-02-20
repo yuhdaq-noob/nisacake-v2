@@ -9,28 +9,28 @@ use Illuminate\View\Component;
 class Navbar extends Component
 {
     /**
-     * The active section key (kasir|gudang|laporan)
+     * Kunci seksi aktif (kasir|gudang|laporan)
      *
      * @var string|null
      */
     public $active;
 
     /**
-     * Optional links array to override defaults
+     * Array link opsional untuk menimpa default
      *
      * @var array|null
      */
     public $links;
 
     /**
-     * Whether to show logout button
+     * Menentukan apakah tombol logout ditampilkan
      *
      * @var bool
      */
     public $showLogout;
 
     /**
-     * Create a new component instance.
+     * Buat instance komponen baru.
      */
     public function __construct($active = null, $links = null, $showLogout = true)
     {
@@ -40,7 +40,7 @@ class Navbar extends Component
     }
 
     /**
-     * Get the view / contents that represent the component.
+     * Dapatkan view / isi yang merepresentasikan komponen.
      */
     public function render(): View|Closure|string
     {

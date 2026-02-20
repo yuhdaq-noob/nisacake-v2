@@ -1,37 +1,7 @@
 /**
- * Reports and Financial Dashboard Module
- *
- * SOLID Principles Applied:
- * 1. Single Responsibility Principle (SRP)
- *    - Separate functions for data loading, filtering, rendering, and charting
- *    - Each function handles one specific task
- *
- * 2. Open/Closed Principle (OCP)
- *    - Filter logic is extensible without modifying core functionality
- *    - Chart configuration can be modified without changing render logic
- *
- * 3. Liskov Substitution Principle (LSP)
- *    - Data handling works with multiple API response formats
- *    - Flexible data structure handling
- *
- * 4. Interface Segregation Principle (ISP)
- *    - Functions are focused and don't force dependencies
- *    - Modular design with clear interfaces
- *
- * 5. Dependency Inversion Principle (DIP)
- *    - Depends on utility abstractions (formatRupiah, date helpers)
- *    - Chart library integration is abstracted
- *
- * Best Practices:
- * - Separation of concerns (data, view, business logic)
- * - Consistent error handling
- * - Event-driven architecture
- * - Reusable utility functions
- * - Clear naming conventions
- * - Performance optimization (efficient filtering)
+ * Modul Laporan dan Dashboard Keuangan
+ * Mengelola pemuatan data, filter, chart, dan ekspor laporan.
  */
-
-// FIXME: PERHITUNGAN
 
 import "./bootstrap";
 import "./api.js";
@@ -51,11 +21,11 @@ const overheadApiUrl = "/api/overhead-settings";
 let allData = [];
 let myChart = null;
 
-// Load and initialize report data on page load
+// Muat dan inisialisasi data laporan saat halaman dimuat
 document.addEventListener("DOMContentLoaded", async () => {
     if (!document.getElementById("myChart")) return;
 
-    // Show loading state
+    // Tampilkan (loading)
     const tbody = document.getElementById("tabelLaporan");
     if (tbody) {
         tbody.innerHTML =
@@ -73,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         let data = await response.json();
 
-        // Handle both array and object with .data property (Resource format)
+        // Tangani format array atau objek dengan properti .data (format Resource)
         if (!Array.isArray(data)) {
             if (data.data && Array.isArray(data.data)) {
                 allData = data.data;
@@ -90,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         await loadOverheadSettings();
 
-        // Export event listeners
+        // Pasang event listener untuk aksi ekspor
         document
             .getElementById("btnExportExcel")
             ?.addEventListener("click", (e) => {
@@ -120,7 +90,7 @@ async function loadOverheadSettings() {
     const tbody = document.getElementById("tabelOverhead");
     if (!tbody) return;
 
-    // Show loading state
+    // Tampilkan status memuat (loading)
     tbody.innerHTML =
         '<tr><td colspan="3" class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-700"></div></td></tr>';
 
@@ -537,7 +507,7 @@ function renderChart(data) {
 
     myChart = new Chart(ctx, chartConfig);
 
-    // Handle window resize for responsive updates
+    // Tangani perubahan ukuran jendela untuk pembaruan responsif
     let resizeTimer;
     window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
@@ -547,7 +517,7 @@ function renderChart(data) {
                     myChart.options.plugins.legend.position === "bottom";
                 const nowMobile = window.innerWidth < 768;
 
-                // Only re-render if mobile state changed
+                // Hanya lakukan re-render jika status mobile berubah
                 if (wasMobile !== nowMobile) {
                     renderChart(data);
                 }
@@ -560,7 +530,7 @@ function exportLaporan(format) {
     const timeFilter = document.getElementById("filterWaktu").value;
     const searchText = document.getElementById("searchInput").value;
 
-    // Build query parameters with current filter settings
+    // Bangun parameter query dengan pengaturan filter saat ini
     const params = new URLSearchParams({
         format: format,
         period: timeFilter,
