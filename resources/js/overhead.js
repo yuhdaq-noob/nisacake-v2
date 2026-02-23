@@ -11,7 +11,7 @@ async function loadOverheadSettings() {
     const tbody = document.getElementById("tabelOverhead");
     if (!tbody) return;
     tbody.innerHTML =
-        '<tr><td colspan="3" class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-700"></div></td></tr>';
+        '<tr><td colspan="3" class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400"></div></td></tr>';
     try {
         const response = await fetch(overheadApiUrl, {
             headers: getAuthHeaders(),
@@ -34,7 +34,7 @@ async function loadOverheadSettings() {
     } catch (error) {
         console.error("Error loading overhead settings:", error);
         tbody.innerHTML =
-            '<tr><td colspan="3" class="text-center py-4 text-rose-600"><i class="bi bi-exclamation-triangle-fill"></i><p class="text-xs mt-1">Gagal memuat data overhead.</p></td></tr>';
+            '<tr><td colspan="3" class="text-center py-4 text-rose-400"><i class="bi bi-exclamation-triangle-fill"></i><p class="text-xs mt-1">Gagal memuat data overhead.</p></td></tr>';
     }
 }
 
@@ -56,9 +56,9 @@ function renderOverheadTable(items) {
               }).format(rawValue)
             : item.value;
         html += `
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="text-slate-800 font-medium">${item.label ?? item.key}</td>
-                <td class="text-right font-semibold text-slate-900">${formattedValue}</td>
+            <tr class="hover:bg-slate-700/50 transition-colors">
+                <td class="text-slate-200 font-medium">${item.label ?? item.key}</td>
+                <td class="text-right font-semibold text-white">${formattedValue}</td>
                 <td class="text-center text-slate-500 text-xs font-medium uppercase hidden sm:table-cell">${item.unit || "-"}</td>
             </tr>
         `;

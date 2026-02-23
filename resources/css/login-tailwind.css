@@ -17,8 +17,8 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
-    color: var(--text-primary);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    color: #f1f5f9;
     font-family: "Poppins", sans-serif;
     font-weight: 400;
     letter-spacing: 0.35px;
@@ -31,16 +31,9 @@ body {
     text-align: center;
     padding: 52px 40px 40px 40px;
     border-radius: 24px;
-    box-shadow:
-        0 20px 50px rgba(3, 105, 161, 0.12),
-        0 4px 12px rgba(3, 105, 161, 0.08),
-        inset 0 1px 1px rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(3, 105, 161, 0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    margin-top: 0;
-    margin-bottom: 0;
+    background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+    border: 1px solid #475569;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -57,9 +50,7 @@ body {
 }
 
 .login-card:hover {
-    box-shadow:
-        0 25px 60px rgba(3, 105, 161, 0.15),
-        0 6px 16px rgba(3, 105, 161, 0.1);
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
     transform: translateY(-2px);
 }
 
@@ -71,51 +62,45 @@ body {
     margin-bottom: 24px;
     position: relative;
     z-index: 10;
+    /* Logo shape - rounded rectangle for better logo display */
+    width: 110px;
+    height: 110px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #334155 0%, #1e293b 100%);
+    border: 3px solid #06b6d4;
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+    padding: 10px;
 }
 
 .owner-photo {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    background-color: #f0f9ff;
-    border: 4px solid #ffffff;
-    padding: 8px;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
     object-fit: contain;
-
-    box-shadow:
-        0 4px 6px -1px rgba(3, 105, 161, 0.05),
-        0 10px 15px -3px rgba(3, 105, 161, 0.1);
-
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .owner-photo:hover {
-
-    transform: translateY(-4px);
-    box-shadow:
-        0 10px 15px -3px rgba(3, 105, 161, 0.08),
-        0 20px 25px -5px rgba(3, 105, 161, 0.15);
+    transform: scale(1.02);
 }
 
 .login-card h2 {
-    color: var(--primary);
+    color: #f1f5f9;
     margin-bottom: 8px;
     margin-top: 12px;
     font-weight: 700;
     font-size: 1.5rem;
     letter-spacing: -0.5px;
-    background: linear-gradient(
-        135deg,
-        var(--primary) 0%,
-        var(--primary-dark) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .login-card p {
-    color: var(--text-secondary);
+    color: #94a3b8;
     font-size: 0.9rem;
     margin-bottom: 32px;
     line-height: 1.6;
@@ -125,16 +110,21 @@ body {
 .input-group {
     margin-bottom: 18px;
     text-align: left;
+    position: relative;
+    z-index: 10;
 }
 
 .password-group {
     position: relative;
 }
+
 .password-input-wrapper {
     display: flex;
     align-items: center;
     position: relative;
+    z-index: 10;
 }
+
 .toggle-password {
     background: none;
     border: none;
@@ -145,23 +135,24 @@ body {
     transform: translateY(-50%);
     cursor: pointer;
     padding: 6px 4px;
-    color: #cbd5e1;
-    z-index: 2;
+    color: #64748b;
+    z-index: 20;
     display: flex;
     align-items: center;
     opacity: 0.7;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto;
 }
 
 .toggle-password:hover {
-    color: var(--accent);
+    color: #06b6d4;
     opacity: 1;
 }
 
 .input-group label {
     display: block;
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: #cbd5e1;
     margin-bottom: 6px;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -171,35 +162,39 @@ body {
 .form-control {
     width: 100%;
     padding: 12px 14px;
-    border: 1.5px solid var(--border);
+    border: 1px solid #475569;
     border-radius: 10px;
     font-size: 0.95rem;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(51, 65, 85, 0.8);
     outline: none;
     font-family: inherit;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    color: var(--text-primary);
+    color: #f1f5f9;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+    -webkit-pointer-events: auto;
+    -moz-pointer-events: auto;
 }
 
 .form-control[readonly] {
-    background-color: #f1f5f9;
+    background-color: rgba(51, 65, 85, 0.6);
     color: #94a3b8;
-    border-color: #e2e8f0;
+    border-color: #475569;
     cursor: not-allowed;
     font-weight: 500;
 }
 
 .form-control:focus {
-    border-color: var(--primary);
-    background: #fff;
-    box-shadow:
-        0 0 0 3px rgba(3, 105, 161, 0.08),
-        0 4px 12px rgba(3, 105, 161, 0.12);
+    border-color: #06b6d4;
+    background: rgba(51, 65, 85, 1);
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+    outline: none;
 }
 
 .form-control.error {
     border-color: #ef4444;
-    background-color: #fef2f2;
+    background-color: rgba(239, 68, 68, 0.1);
     animation: shake 0.4s cubic-bezier(0.36, 0, 0.66, -0.56);
 }
 
@@ -224,11 +219,7 @@ body {
     padding: 13px 16px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(
-        135deg,
-        var(--primary) 0%,
-        var(--primary-dark) 100%
-    );
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
     color: #fff;
     font-size: 0.95rem;
     font-weight: 700;
@@ -240,10 +231,9 @@ body {
     justify-content: center;
     gap: 10px;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow:
-        0 8px 20px rgba(3, 105, 161, 0.25),
-        0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
     position: relative;
+    z-index: 10;
     overflow: hidden;
 }
 
@@ -268,27 +258,25 @@ body {
 }
 
 .btn-login:hover {
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
     transform: translateY(-2px);
-    box-shadow:
-        0 12px 28px rgba(3, 105, 161, 0.32),
-        0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .btn-login:active {
-    transform: translateY(0px) scale(0.98);
-    box-shadow:
-        0 4px 12px rgba(3, 105, 161, 0.2),
-        inset 0 2px 4px rgba(0, 0, 0, 0.15);
+    transform: translateY(0) scale(0.98);
 }
 
 .error-message {
-    color: #ef4444;
+    color: #f87171;
     font-size: 0.8rem;
     margin-top: 8px;
     min-height: 20px;
     opacity: 0;
     transition: opacity 0.3s ease;
     font-weight: 500;
+    position: relative;
+    z-index: 10;
 }
 
 .loading-overlay {
@@ -302,7 +290,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    z-index: 9999;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -435,12 +423,13 @@ body {
     position: absolute;
     bottom: 24px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.75);
+    color: #64748b;
     opacity: 0.8;
     font-weight: 500;
     letter-spacing: 0.3px;
 }
-/* Mobile Responsive Design - Best Practices */
+
+/* Mobile Responsive Design */
 @media (max-width: 640px) {
     body {
         padding: 1rem;
@@ -462,12 +451,13 @@ body {
     .photo-wrapper {
         margin-top: -50px;
         margin-bottom: 16px;
+        width: 90px;
+        height: 90px;
     }
 
     .owner-photo {
-        width: 80px;
-        height: 80px;
-        border: 3px solid #fff;
+        width: 100%;
+        height: 100%;
     }
 
     .login-card h2 {
@@ -492,7 +482,7 @@ body {
 
     .form-control {
         padding: 11px 12px;
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
         border-radius: 8px;
     }
 
@@ -515,7 +505,6 @@ body {
     .spinner {
         width: 40px;
         height: 40px;
-        border-width: 3px;
     }
 
     .brand-logo {
@@ -537,12 +526,15 @@ body {
     .photo-wrapper {
         margin-top: -40px;
         margin-bottom: 14px;
+        width: 80px;
+        height: 80px;
+        border-radius: 14px;
     }
 
     .owner-photo {
-        width: 70px;
-        height: 70px;
-        border-width: 2px;
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
     }
 
     .login-card h2 {
@@ -559,7 +551,7 @@ body {
     }
 
     .form-control {
-        min-height: 44px; /* Touch-friendly minimum */
+        min-height: 44px;
     }
 
     .btn-login {
@@ -583,11 +575,14 @@ body {
     .photo-wrapper {
         margin-top: -35px;
         margin-bottom: 12px;
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
     }
 
     .owner-photo {
-        width: 60px;
-        height: 60px;
+        width: 100%;
+        height: 100%;
     }
 
     .login-card h2 {
@@ -616,18 +611,5 @@ body {
     .btn-login {
         padding: 8px 12px;
         font-size: 0.75rem;
-    }
-}
-
-/* Improve focus states for touch devices */
-@media (hover: none) and (pointer: coarse) {
-    .form-control:focus {
-        box-shadow:
-            0 0 0 3px rgba(3, 105, 161, 0.12),
-            0 4px 12px rgba(3, 105, 161, 0.15);
-    }
-
-    .btn-login:active {
-        transform: scale(0.97);
     }
 }

@@ -752,29 +752,29 @@ function renderScheduledOrders(container, orders) {
                 .join(", ") || "-";
 
         html += `
-            <div class="bg-white rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition duration-200 border border-slate-200 p-3">
+            <div class="bg-slate-800 rounded-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition duration-200 border border-slate-700 p-3">
                 <div class="flex justify-between items-start gap-3 mb-2">
                     <div class="min-w-0 flex-1">
-                        <p class="text-[0.7rem] font-semibold text-slate-600">ID #${order.id}</p>
-                        <p class="text-lg font-semibold text-slate-900 mt-1 truncate flex items-center">
+                        <p class="text-[0.7rem] font-semibold text-slate-400">ID #${order.id}</p>
+                        <p class="text-lg font-semibold text-white mt-1 truncate flex items-center">
                             <i class="bi bi-person-circle text-slate-400 mr-2"></i>
                             ${order.customer_name || "-"}
                         </p>
                     </div>
 
                     <div class="text-right flex-shrink-0 flex flex-col items-end gap-1">
-                        <span class="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 uppercase mr-2">TERJADWAL</span>
+                        <span class="text-xs font-medium px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 uppercase mr-2">TERJADWAL</span>
                         <div class="mt-1 text-right">
-                            <div class="text-sm font-medium text-gray-800">${datePart}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">${timePart}</div>
+                            <div class="text-sm font-medium text-slate-200">${datePart}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">${timePart}</div>
                         </div>
                     </div>
                 </div>
 
-                <p class="text-xs text-slate-500 mb-2 line-clamp-2">Items: ${itemsList}</p>
+                <p class="text-xs text-slate-400 mb-2 line-clamp-2">Items: ${itemsList}</p>
 
-                <div class="border-t border-slate-100/50 mt-3 pt-3 flex items-center justify-between gap-3 flex-wrap">
-                    <p class="text-xl font-bold text-slate-900">${formatRupiah(order.total_price || 0)}</p>
+                <div class="border-t border-slate-700 mt-3 pt-3 flex items-center justify-between gap-3 flex-wrap">
+                    <p class="text-xl font-bold text-white">${formatRupiah(order.total_price || 0)}</p>
                     <button
                         type="button"
                         onclick="completeScheduledOrder(${order.id})"

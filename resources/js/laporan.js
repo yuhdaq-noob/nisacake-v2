@@ -25,11 +25,11 @@ let myChart = null;
 document.addEventListener("DOMContentLoaded", async () => {
     if (!document.getElementById("myChart")) return;
 
-    // Tampilkan (loading)
+    // Tampilkan (loading) - Dark theme
     const tbody = document.getElementById("tabelLaporan");
     if (tbody) {
         tbody.innerHTML =
-            '<tr><td colspan="7" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-700"></div><p class="mt-2 text-slate-500 text-sm">Memuat data transaksi...</p></td></tr>';
+            '<tr><td colspan="7" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div><p class="mt-2 text-slate-400 text-sm">Memuat data transaksi...</p></td></tr>';
     }
 
     bindExportDropdown();
@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const tbody = document.getElementById("tabelLaporan");
         if (tbody) {
             tbody.innerHTML =
-                '<tr><td colspan="7" class="text-center py-6 text-rose-600"><i class="bi bi-exclamation-triangle-fill text-2xl mb-2"></i><p class="text-sm font-medium">Gagal memuat data laporan. Silakan refresh halaman.</p></td></tr>';
+                '<tr><td colspan="7" class="text-center py-6 text-rose-400"><i class="bi bi-exclamation-triangle-fill text-2xl mb-2"></i><p class="text-sm font-medium">Gagal memuat data laporan. Silakan refresh halaman.</p></td></tr>';
         }
     }
 });
@@ -92,7 +92,7 @@ async function loadOverheadSettings() {
 
     // Tampilkan status memuat (loading)
     tbody.innerHTML =
-        '<tr><td colspan="3" class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-700"></div></td></tr>';
+        '<tr><td colspan="3" class="text-center py-4"><div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400"></div></td></tr>';
 
     try {
         const response = await fetch(overheadApiUrl, {
@@ -120,7 +120,7 @@ async function loadOverheadSettings() {
         console.error("Error loading overhead settings:", error);
         showErrorToast("Gagal memuat data overhead.");
         tbody.innerHTML =
-            '<tr><td colspan="3" class="text-center py-4 text-rose-600"><i class="bi bi-exclamation-triangle-fill"></i><p class="text-xs mt-1">Gagal memuat data overhead.</p></td></tr>';
+            '<tr><td colspan="3" class="text-center py-4 text-rose-400"><i class="bi bi-exclamation-triangle-fill"></i><p class="text-xs mt-1">Gagal memuat data overhead.</p></td></tr>';
     }
 }
 
@@ -206,18 +206,18 @@ function renderTable(data) {
         tHPP += hppVal;
         tProfit += profitVal;
 
-        // Determine profit styling
+        // Determine profit styling - Dark theme
         const profitClass =
-            profitVal >= 0 ? "text-emerald-700" : "text-rose-700";
+            profitVal >= 0 ? "text-emerald-400" : "text-red-400";
 
         html += `
-            <tr class="hover:bg-slate-50 transition-colors" data-order-id="${order.id}">
-                <td class="font-semibold text-slate-900">#${order.id}</td>
-                <td class="text-slate-700 text-xs sm:text-sm">${order.date}</td>
-                <td class="text-slate-800 hidden sm:table-cell">${order.customer || "-"}</td>
-                <td class="text-slate-600 text-xs max-w-[150px] truncate" title="${order.products}">${order.products}</td>
-                <td class="text-right font-medium text-slate-900">${formatRupiah(omzetVal)}</td>
-                <td class="text-right font-medium text-slate-700 hidden sm:table-cell">${formatRupiah(hppVal)}</td>
+            <tr class="hover:bg-slate-700/50 transition-colors" data-order-id="${order.id}">
+                <td class="font-semibold text-white">#${order.id}</td>
+                <td class="text-slate-300 text-xs sm:text-sm">${order.date}</td>
+                <td class="text-slate-200 hidden sm:table-cell">${order.customer || "-"}</td>
+                <td class="text-slate-400 text-xs max-w-[150px] truncate" title="${order.products}">${order.products}</td>
+                <td class="text-right font-medium text-white">${formatRupiah(omzetVal)}</td>
+                <td class="text-right font-medium text-slate-300 hidden sm:table-cell">${formatRupiah(hppVal)}</td>
                 <td class="text-right font-bold ${profitClass}">${formatRupiah(profitVal)}</td>
             </tr>
         `;
@@ -252,9 +252,9 @@ function renderOverheadTable(items) {
             : item.value;
 
         html += `
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="text-slate-800 font-medium">${item.label ?? item.key}</td>
-                <td class="text-right font-semibold text-slate-900">${formattedValue}</td>
+            <tr class="hover:bg-slate-700/50 transition-colors">
+                <td class="text-slate-200 font-medium">${item.label ?? item.key}</td>
+                <td class="text-right font-semibold text-white">${formattedValue}</td>
                 <td class="text-center text-slate-500 text-xs font-medium uppercase hidden sm:table-cell">${item.unit || "-"}</td>
             </tr>
         `;
@@ -333,7 +333,7 @@ function renderChart(data) {
         myChart = null;
     }
 
-    // Responsive configuration based on device
+    // Responsive configuration based on device - Dark theme chart
     const chartConfig = {
         type: "line",
         data: {
@@ -342,10 +342,10 @@ function renderChart(data) {
                 {
                     label: "Omzet",
                     data: dataOmzet,
-                    borderColor: "#0891b2",
+                    borderColor: "#06b6d4",
                     backgroundColor: isMobile
-                        ? "rgba(8, 145, 178, 0.05)"
-                        : "rgba(8, 145, 178, 0.1)",
+                        ? "rgba(6, 182, 212, 0.1)"
+                        : "rgba(6, 182, 212, 0.15)",
                     borderWidth: isMobile ? 2 : 2.5,
                     tension: 0.4,
                     fill: true,
@@ -356,16 +356,16 @@ function renderChart(data) {
                 {
                     label: "Profit",
                     data: dataProfit,
-                    borderColor: "#0e7490",
+                    borderColor: "#22d3ee",
                     backgroundColor: isMobile
-                        ? "rgba(14, 116, 144, 0.03)"
-                        : "rgba(14, 116, 144, 0.08)",
+                        ? "rgba(34, 211, 238, 0.05)"
+                        : "rgba(34, 211, 238, 0.1)",
                     borderWidth: isMobile ? 2 : 2.5,
                     tension: 0.4,
                     fill: true,
                     pointRadius: isMobile ? 0 : 3,
-                    pointBackgroundColor: "#fff",
-                    pointBorderColor: "#0e7490",
+                    pointBackgroundColor: "#1e293b",
+                    pointBorderColor: "#22d3ee",
                     pointBorderWidth: 2,
                     pointHoverRadius: isMobile ? 5 : 6,
                     pointHitRadius: isMobile ? 20 : 10,
@@ -390,17 +390,17 @@ function renderChart(data) {
                             family: "'Inter', 'system-ui', sans-serif",
                             weight: "500",
                         },
-                        color: "#334155",
+                        color: "#94a3b8",
                     },
                 },
                 tooltip: {
                     enabled: true,
                     mode: "index",
                     intersect: false,
-                    backgroundColor: "rgba(255, 255, 255, 0.97)",
-                    titleColor: "#1e293b",
-                    bodyColor: "#475569",
-                    borderColor: "#e2e8f0",
+                    backgroundColor: "rgba(30, 41, 59, 0.95)",
+                    titleColor: "#f1f5f9",
+                    bodyColor: "#cbd5e1",
+                    borderColor: "#475569",
                     borderWidth: 1,
                     padding: isMobile ? 10 : 12,
                     boxPadding: 6,
@@ -435,7 +435,7 @@ function renderChart(data) {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: "#f1f5f9",
+                        color: "#334155",
                         drawBorder: false,
                         lineWidth: 1,
                     },
@@ -447,7 +447,7 @@ function renderChart(data) {
                             size: isMobile ? 9 : 10,
                             family: "'Inter', 'system-ui', sans-serif",
                         },
-                        color: "#64748b",
+                        color: "#94a3b8",
                         padding: isMobile ? 4 : 8,
                         maxTicksLimit: isMobile ? 5 : 8,
                         callback: function (value) {
@@ -479,7 +479,7 @@ function renderChart(data) {
                             size: isMobile ? 9 : 10,
                             family: "'Inter', 'system-ui', sans-serif",
                         },
-                        color: "#64748b",
+                        color: "#94a3b8",
                         maxRotation: isMobile ? 45 : 0,
                         minRotation: isMobile ? 45 : 0,
                         padding: isMobile ? 4 : 8,

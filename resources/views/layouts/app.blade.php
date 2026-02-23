@@ -13,7 +13,7 @@
 
     @yield('styles')
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-900 text-slate-100">
     <div class="min-h-screen flex lg:pl-72">
         <!-- Sidebar Navigation -->
         <x-navbar active="{{ $active ?? null }}" dark="true" />

@@ -1,30 +1,48 @@
 @php
-    $defaultLinks = [
-        ['label' => 'Kasir', 'href' => url('/kasir'), 'key' => 'kasir', 'icon' => 'bi bi-cash-stack'],
-        ['label' => 'Gudang', 'href' => url('/gudang'), 'key' => 'gudang', 'icon' => 'bi bi-boxes'],
-        ['label' => 'Laporan', 'href' => url('/laporan'), 'key' => 'laporan', 'icon' => 'bi bi-graph-up-arrow'],
-    ];
-
-    $navLinks = $links ?? ($navbarLinks ?? $defaultLinks);
+    // Use default links from component, or custom links if provided
+    $navLinks = $links ?? $defaultLinks;
     $activeKey = $active ?? null;
-    $dark = $dark ?? false;
+
+    // Dark mode - always enabled for professional dark theme
+    $isDark = true;
+
+    // Get user data from component (already authenticated)
+    $userName = $user?->name ?? 'Guest';
+    $userRole = $user?->username ?? 'User';
+
+    // Image paths with fallback
+    $logoPath = file_exists(public_path('images/logo.png')) ? '/images/logo.png' : '/favicon.ico';
+    $profilePath = file_exists(public_path('images/owner.jpg')) ? '/images/owner.jpg' : null;
+
+    // Professional Dark Theme Colors - Fixed
+    $headerBg = 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900';
+    $sidebarBg = 'bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900';
+    $textPrimary = 'text-slate-100';
+    $textSecondary = 'text-slate-300';
+    $textMuted = 'text-slate-400';
+    $borderColor = 'border-slate-700';
+    $hoverBg = 'hover:bg-slate-700/50';
+
+    // Accent colors for dark theme
+    $accentColor = 'cyan';
+    $accentGlow = 'rgba(6, 182, 212, 0.15)';
 @endphp
 
 <!-- Mobile Top Bar -->
-<div class="{{ $dark ? 'navbar navbar--dark' : '' }} fixed top-0 inset-x-0 z-40 bg-gradient-to-r from-white via-white to-slate-50/80 backdrop-blur-sm border-b border-slate-200 lg:hidden shadow-sm">
+<div class="fixed top-0 inset-x-0 z-40 {{ $headerBg }} backdrop-blur-sm border-b {{ $borderColor }} lg:hidden shadow-sm">
     <div class="flex items-center justify-between h-16 px-5">
         <div class="flex items-center gap-3">
             <img
-              src="/images/logo.png"
+              src="{{ $logoPath }}"
               alt="NC Logo"
               class="h-10 w-10 rounded-xl shadow-md object-cover"
             />
             <div class="leading-tight">
-                <p class="text-sm font-bold text-slate-900">Nisa Cake</p>
-                <p class="text-xs font-medium text-slate-500">System</p>
+                <p class="text-sm font-bold {{ $textPrimary }}">Nisa Cake</p>
+                <p class="text-xs font-medium {{ $textSecondary }}">System</p>
             </div>
         </div>
-        <button class="p-2.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all duration-200" data-drawer-toggle aria-label="Buka menu">
+        <button class="p-2.5 rounded-lg border {{ $borderColor }} {{ $hoverBg }} {{ $textSecondary }} transition-all duration-200" data-drawer-toggle aria-label="Buka menu">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -34,27 +52,27 @@
 
 <!-- Sidebar / Drawer -->
 <aside
-    class="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 shadow-lg transition-all duration-300 ease-in-out -translate-x-full lg:translate-x-0"
+    class="fixed inset-y-0 left-0 z-50 w-72 {{ $sidebarBg }} border-r {{ $borderColor }} shadow-lg transition-all duration-300 ease-in-out -translate-x-full lg:translate-x-0"
     data-drawer
     data-sidebar
     data-collapsed="false"
 >
-    <div class="flex flex-col h-full bg-gradient-to-b from-white via-white to-slate-50">
+    <div class="flex flex-col h-full">
         <!-- Header Section -->
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+        <div class="flex items-center justify-between px-6 py-5 border-b {{ $borderColor }}">
             <div class="flex items-center gap-4">
                 <img
-                  src="/images/logo.png"
+                  src="{{ $logoPath }}"
                   alt="NC Logo"
                   class="sidebar-logo h-12 w-12 rounded-xl shadow-md object-cover"
                 />
                 <div class="sidebar-textual leading-tight">
-                    <p class="text-base font-bold text-slate-900 tracking-tight">Nisa Cake</p>
-                    <p class="text-xs font-medium text-slate-500">System</p>
+                    <p class="text-base font-bold {{ $textPrimary }} tracking-tight">Nisa Cake</p>
+                    <p class="text-xs font-medium {{ $textSecondary }}">System</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" class="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all duration-200" data-sidebar-collapse aria-expanded="false">
+                <button type="button" class="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg border {{ $borderColor }} {{ $textSecondary }} {{ $hoverBg }} transition-all duration-200" data-sidebar-collapse aria-expanded="false">
                     <span class="collapse-icon collapse-icon--expand">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16m-6-6 6 6-6 6" />
@@ -66,7 +84,7 @@
                         </svg>
                     </span>
                 </button>
-                <button class="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors" data-drawer-close aria-label="Tutup menu">
+                <button class="lg:hidden p-2 {{ $textSecondary }} {{ $hoverBg }} rounded-lg transition-colors" data-drawer-close aria-label="Tutup menu">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -74,17 +92,23 @@
             </div>
         </div>
 
-        <!-- Profile Card -->
-        <div class="px-5 py-6 flex-shrink-0" style="border-bottom: 1px solid #e2e8f0;">
-            <div class="profile-card rounded-xl bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-200/50 shadow-sm hover:shadow-md transition-all duration-200 px-4 py-3">
+        <!-- Profile Card - Dark Theme -->
+        <div class="px-5 py-6 flex-shrink-0" style="border-bottom: 1px solid #334155;">
+            <div class="profile-card rounded-xl bg-gradient-to-br from-slate-800 to-slate-700/80 border border-slate-600/50 shadow-lg hover:shadow-xl hover:shadow-cyan-500/5 transition-all duration-300 px-4 py-3">
                 <div class="flex items-center gap-3">
                     <div class="relative flex-shrink-0">
-                        <img src="/images/owner.jpg" alt="Foto Profil" class="h-14 w-14 rounded-xl object-cover ring-2 ring-white shadow-md">
-                        <span class="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                        @if($profilePath)
+                            <img src="{{ $profilePath }}" alt="Foto Profil" class="h-14 w-14 rounded-xl object-cover ring-2 ring-slate-600 shadow-md">
+                        @else
+                            <div class="h-14 w-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center ring-2 ring-slate-600 shadow-md">
+                                <span class="text-white font-bold text-lg">{{ strtoupper(substr($userName, 0, 1)) }}</span>
+                            </div>
+                        @endif
+                        <span class="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-green-500 ring-2 ring-slate-700"></span>
                     </div>
                     <div class="sidebar-textual flex-1 min-w-0">
-                        <p class="text-sm font-bold text-slate-900">Ibu Nisa</p>
-                        <p class="text-xs text-slate-600 mt-0.5 font-medium">Owner & Admin</p>
+                        <p class="text-sm font-bold text-slate-100">{{ $userName }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5 font-medium">{{ $userRole }}</p>
                     </div>
                 </div>
             </div>
@@ -105,8 +129,8 @@
                     }
                     $baseIcon = isset($link['icon']) ? '<i class="'.$link['icon'].'"></i>' : '<i class="bi bi-circle"></i>';
                     $activeClass = $isActive
-                        ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10 text-cyan-700 border-l-2 border-l-cyan-500 shadow-sm font-semibold'
-                        : 'text-slate-600 hover:bg-slate-100/60 hover:text-slate-900 hover:border-l-slate-300 border-l-2 border-l-transparent';
+                        ? 'bg-gradient-to-r from-slate-700/50 to-slate-600/50 text-white border-l-2 border-l-cyan-400 shadow-sm font-semibold'
+                        : 'text-slate-300 hover:bg-slate-800/60 hover:text-white hover:border-l-slate-500 border-l-2 border-l-transparent';
                 @endphp
                 <a
                     href="{{ $link['href'] }}"
@@ -115,10 +139,10 @@
                     data-tooltip="{{ $link['label'] }}"
                     class="nav-link group relative flex items-center gap-3.5 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] {{ $activeClass }}"
                 >
-                    <span class="text-lg flex-shrink-0 {{ $isActive ? 'text-cyan-600' : 'text-slate-500 group-hover:text-slate-700' }}">{!! $baseIcon !!}</span>
+                    <span class="text-lg flex-shrink-0 {{ $isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-white' }}">{!! $baseIcon !!}</span>
                     <span class="nav-label flex-1">{{ $link['label'] }}</span>
                     @if($isActive)
-                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-600"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
                     @endif
                 </a>
             @endforeach
@@ -126,10 +150,10 @@
 
         <!-- Logout Button -->
         @if($showLogout ?? true)
-            <div class="flex-shrink-0 px-5 pb-6 pt-5 border-t border-slate-100">
+            <div class="flex-shrink-0 px-5 pb-6 pt-5 border-t {{ $borderColor }}">
                 <form action="{{ route('logout') }}" method="POST" class="w-full">
                     @csrf
-                    <button type="submit" title="Logout" class="logout-btn w-full inline-flex items-center justify-center gap-3 rounded-lg bg-red-50 text-red-700 py-2.5 px-4 font-semibold text-sm border border-red-100/80 hover:bg-red-100 hover:border-red-200 transition-all duration-200 shadow-sm hover:shadow-md">
+                    <button type="submit" title="Logout" class="logout-btn w-full inline-flex items-center justify-center gap-3 rounded-lg bg-red-900/30 text-red-400 border-red-700/50 hover:bg-red-900/50 py-2.5 px-4 font-semibold text-sm border transition-all duration-200 shadow-sm hover:shadow-md">
                         <i class="bi bi-box-arrow-right text-base"></i>
                         <span class="logout-label">Logout</span>
                     </button>
@@ -209,7 +233,7 @@
             color: #f1f5f9;
             padding: 0.4rem 0.6rem;
             border-radius: 0.6rem;
-            box-shadow: 0 8px 24px rgba(3, 105, 161, 0.18);
+            box-shadow: 0 8px 24px rgba(8, 145, 178, 0.18);
             white-space: nowrap;
             opacity: 0;
             pointer-events: none;
@@ -225,39 +249,35 @@
             transform: translateY(-50%) scale(1);
         }
 
-        /* ========== Penyempurnaan sidebar terkolaps (lebih profesional) ========== */
         [data-sidebar][data-collapsed="true"] .sidebar-logo {
             height: 40px;
             width: 40px;
             transition: width 200ms ease, height 200ms ease, transform 200ms ease;
         }
 
-        /* Buat area ikon konsisten dan berikan efek hover halus */
         [data-sidebar][data-collapsed="true"] .nav-link .text-lg {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 2.25rem; /* 36px */
+            width: 2.25rem;
             height: 2.25rem;
             border-radius: 0.6rem;
             transition: background-color 160ms, color 160ms, transform 160ms, box-shadow 160ms;
         }
 
         [data-sidebar][data-collapsed="true"] .nav-link:hover .text-lg {
-            background-color: rgba(2, 6, 23, 0.04);
+            background-color: rgba(8, 145, 178, 0.1);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(2, 6, 23, 0.06);
-            color: var(--primary-color);
+            box-shadow: 0 6px 20px rgba(8, 145, 178, 0.15);
+            color: #0891b2;
         }
 
-        /* Penegasan status aktif yang lebih kuat untuk mode hanya-ikon */
         [data-sidebar][data-collapsed="true"] .nav-link[aria-current="page"] .text-lg {
-            background: linear-gradient(135deg, rgba(3,105,161,0.12), rgba(15,118,110,0.08));
-            color: var(--primary-color);
-            box-shadow: 0 8px 30px rgba(3,105,161,0.12);
+            background: linear-gradient(135deg, rgba(8,145,178,0.15), rgba(6,182,212,0.1));
+            color: #0891b2;
+            box-shadow: 0 8px 30px rgba(8,145,178,0.15);
         }
 
-        /* Panah tooltip + tooltip yang lebih halus */
         [data-sidebar][data-collapsed="true"] .nav-link::before {
             content: '';
             position: absolute;
@@ -279,14 +299,12 @@
             transform: translateY(-50%) rotate(45deg) scale(1);
         }
 
-        /* Tampilan tooltip yang lebih lembut */
         [data-sidebar][data-collapsed="true"] .nav-link::after {
             box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
             transform-origin: left center;
             transition: opacity 160ms cubic-bezier(0.2,0.9,0.2,1), transform 160ms cubic-bezier(0.2,0.9,0.2,1);
         }
 
-        /* Perbaikan ikon logout pada mode terkolaps */
         [data-sidebar][data-collapsed="true"] .logout-btn i {
             display: inline-flex;
             width: 2.25rem;
@@ -298,9 +316,9 @@
         }
 
         [data-sidebar][data-collapsed="true"] .logout-btn:hover i {
-            background-color: rgba(2, 6, 23, 0.04);
+            background-color: rgba(239, 68, 68, 0.1);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(2, 6, 23, 0.06);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15);
         }
 
         [data-sidebar] .collapse-icon--collapse {

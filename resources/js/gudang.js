@@ -33,7 +33,6 @@ function parseRupiahInput(value) {
     if (!value) return NaN;
 
     let cleaned = value.toString().trim();
-
     cleaned = cleaned.replace(/\s+/g, "");
 
     if (cleaned.includes(",") && cleaned.includes(".")) {
@@ -93,12 +92,12 @@ function buildPriceCellHtml(mat) {
     const { displayUnit, displayPrice } = resolveDisplayPrice(mat);
     const editConfig = getEditConfig(mat);
     const editButton = editConfig.isEditable
-        ? `<button type="button" class="btn-edit-price inline-flex items-center gap-1 text-xs font-semibold text-amber-800 hover:text-amber-900" data-material-id="${mat.id}" title="Ubah harga"><i class="bi bi-pencil-square"></i><span>Ubah</span></button>`
+        ? `<button type="button" class="btn-edit-price inline-flex items-center gap-1 text-xs font-semibold text-amber-400 hover:text-amber-300" data-material-id="${mat.id}" title="Ubah harga"><i class="bi bi-pencil-square"></i><span>Ubah</span></button>`
         : "";
 
     return `
         <span class="price-display-group">
-            <span class="price-display">Rp ${formatNumber(displayPrice)}/${displayUnit}</span>
+            <span class="price-display text-slate-200">Rp ${formatNumber(displayPrice)}/${displayUnit}</span>
             ${editButton}
         </span>
     `;
@@ -124,7 +123,7 @@ async function loadMaterials() {
     // Tampilkan status loading
     if (tbody) {
         tbody.innerHTML =
-            '<tr><td colspan="5" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-700"></div><p class="mt-2 text-slate-500 text-sm">Memuat data...</p></td></tr>';
+            '<tr><td colspan="5" class="text-center py-6"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div><p class="mt-2 text-slate-400 text-sm">Memuat data...</p></td></tr>';
     }
 
     try {
@@ -173,11 +172,11 @@ async function loadMaterials() {
             }
 
             htmlTabel += `
-                <tr data-material-id="${mat.id}" class="hover:bg-slate-50 transition-colors">
-                    <td class="font-semibold text-slate-900">${mat.name}</td>
+                <tr data-material-id="${mat.id}" class="hover:bg-slate-700/50 transition-colors">
+                    <td class="font-semibold text-white">${mat.name}</td>
                     <td class="col-price hidden sm:table-cell" data-material-id="${mat.id}">${buildPriceCellHtml(mat)}</td>
-                    <td class="text-right font-medium text-slate-700">${formatNumber(mat.current_stock)}</td>
-                    <td class="uppercase text-slate-500 font-medium hidden md:table-cell">${mat.unit}</td>
+                    <td class="text-right font-medium text-slate-200">${formatNumber(mat.current_stock)}</td>
+                    <td class="uppercase text-slate-400 font-medium hidden md:table-cell">${mat.unit}</td>
                     <td class="text-center">
                         <span class="${statusClass}">${statusIcon} ${statusText}</span>
                     </td>
@@ -212,7 +211,7 @@ async function loadMaterials() {
         // Show user-friendly error message
         if (tbody) {
             tbody.innerHTML =
-                '<tr><td colspan="5" class="text-center py-6 text-rose-600"><i class="bi bi-exclamation-triangle-fill text-2xl mb-2"></i><p class="text-sm font-medium">Gagal memuat data. Silakan refresh halaman.</p></td></tr>';
+                '<tr><td colspan="5" class="text-center py-6 text-rose-400"><i class="bi bi-exclamation-triangle-fill text-2xl mb-2"></i><p class="text-sm font-medium">Gagal memuat data. Silakan refresh halaman.</p></td></tr>';
         }
     }
 }
@@ -253,12 +252,9 @@ async function loadHistory() {
         let html = "";
         logs.forEach((log) => {
             const isIn = log.type === "in";
-            const textClass = isIn ? "text-emerald-600" : "text-rose-600";
+            const textClass = isIn ? "text-emerald-400" : "text-red-400";
             const sign = isIn ? "+" : "-";
             const badgeText = isIn ? "Masuk" : "Keluar";
-            const badgeColor = isIn
-                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                : "bg-rose-50 text-rose-700 border-rose-100";
 
             const date = new Date(log.created_at).toLocaleString("id-ID", {
                 day: "numeric",
@@ -272,20 +268,20 @@ async function loadHistory() {
             const description = log.description || "-";
 
             html += `
-                <li class="group px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors">
+                <li class="group px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-700/50 transition-colors">
                     <div class="flex-1 min-w-0 flex items-start gap-3">
-                        <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 group-hover:bg-amber-50 group-hover:text-amber-700">
+                        <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-300 group-hover:bg-cyan-900/50 group-hover:text-cyan-400">
                             ${isIn ? '<i class="bi bi-arrow-down-circle-fill"></i>' : '<i class="bi bi-arrow-up-circle-fill"></i>'}
                         </span>
                         <div class="min-w-0">
-                            <div class="font-semibold text-slate-900 truncate">${materialName}</div>
-                            <p class="mt-0.5 text-xs text-slate-500 truncate">${description}</p>
+                            <div class="font-semibold text-white truncate">${materialName}</div>
+                            <p class="mt-0.5 text-xs text-slate-400 truncate">${description}</p>
                         </div>
                     </div>
                     <div class="shrink-0 text-right text-xs">
-                        <span class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wide ${badgeColor}">${badgeText}</span>
-                        <div class="mt-1 text-sm font-bold ${textClass}">${sign}${log.amount}</div>
-                        <div class="mt-0.5 text-slate-400">${date}</div>
+                        <span class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wide ${isIn ? "bg-emerald-900/50 text-emerald-400 border-emerald-700" : "bg-red-900/50 text-red-400 border-red-700"}">${badgeText}</span>
+                        <div class="mt-1 text-sm font-bold ${isIn ? "text-emerald-400" : "text-red-400"}">${sign}${log.amount}</div>
+                        <div class="mt-0.5 text-slate-500">${date}</div>
                     </div>
                 </li>
             `;
@@ -594,18 +590,18 @@ function attachPriceEditHandler() {
 
             cell.innerHTML = `
                 <div class="flex items-center gap-2 flex-wrap">
-                    <div class="flex items-center rounded-lg border border-slate-200 overflow-hidden">
-                        <span class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100">Rp</span>
-                        <input type="number" class="price-input w-24 px-3 py-2 text-sm focus:outline-none" min="0" step="0.01" value="${editConfig.basePrice}">
-                        <span class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100">/${editConfig.editUnit}</span>
+                    <div class="flex items-center rounded-lg border border-slate-600 overflow-hidden">
+                        <span class="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700">Rp</span>
+                        <input type="number" class="price-input w-24 px-3 py-2 text-sm focus:outline-none bg-slate-700 text-white" min="0" step="0.01" value="${editConfig.basePrice}">
+                        <span class="px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-700">/${editConfig.editUnit}</span>
                     </div>
                     <button type="button" class="btn-save-price px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold" data-material-id="${materialId}" title="Simpan">
                         Simpan
                     </button>
-                    <button type="button" class="btn-cancel-price px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700" data-material-id="${materialId}" title="Batal">
+                    <button type="button" class="btn-cancel-price px-3 py-2 rounded-lg border border-slate-600 text-xs font-semibold text-slate-300" data-material-id="${materialId}" title="Batal">
                         Batal
                     </button>
-                    <p class="w-full text-[11px] text-slate-400 mt-1">Contoh input: 35000 atau 35.000 (keduanya berarti Rp 35.000/${editConfig.editUnit}).</p>
+                    <p class="w-full text-[11px] text-slate-500 mt-1">Contoh input: 35000 atau 35.000 (keduanya berarti Rp 35.000/${editConfig.editUnit}).</p>
                 </div>
             `;
 
@@ -749,19 +745,19 @@ async function loadPriceHistory() {
             const name = log.material?.name || "-";
 
             html += `
-                <li class="group px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors">
+                <li class="group px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-700/50 transition-colors">
                     <div class="flex-1 min-w-0">
-                        <div class="font-semibold text-slate-900 truncate">${name}</div>
-                        <p class="mt-0.5 text-xs text-slate-500">
-                            <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-700 mr-1">Sebelum</span>
+                        <div class="font-semibold text-white truncate">${name}</div>
+                        <p class="mt-0.5 text-xs text-slate-400">
+                            <span class="inline-flex items-center rounded-full bg-slate-700 px-2 py-0.5 text-[0.68rem] font-semibold text-slate-300 mr-1">Sebelum</span>
                             Rp ${formatNumber(oldPrice)}/${baseUnit}
                         </p>
-                        <p class="mt-0.5 text-xs text-slate-500">
-                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-700 mr-1">Sesudah</span>
+                        <p class="mt-0.5 text-xs text-slate-400">
+                            <span class="inline-flex items-center rounded-full bg-emerald-900/50 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-400 mr-1">Sesudah</span>
                             Rp ${formatNumber(newPrice)}/${baseUnit}
                         </p>
                     </div>
-                    <div class="shrink-0 text-right text-xs text-slate-400">${date}</div>
+                    <div class="shrink-0 text-right text-xs text-slate-500">${date}</div>
                 </li>
             `;
         });
