@@ -124,9 +124,12 @@
                 <form id="formRestock" data-ajax="true" class="px-4 sm:px-5 py-4 space-y-4">
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-slate-300">Pilih Bahan Baku</label>
-                        <select id="selectBahan" class="w-full rounded-lg border border-slate-600 bg-slate-700/50 text-slate-100 px-3 py-2 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors" required>
-                            <option value="" disabled selected>Pilih Bahan</option>
-                        </select>
+                        <div class="select-icon-wrapper">
+                            <i class="bi bi-box-seam select-icon"></i>
+                            <select id="selectBahan" class="w-full" required aria-label="Pilih bahan baku">
+                                <option value="" disabled selected>-- Pilih Bahan --</option>
+                            </select>
+                        </div>
                         <div id="error_restock_material" class="hidden text-xs text-red-400 mt-1"></div>
                     </div>
                     <div class="space-y-2">
@@ -167,12 +170,15 @@
                     @csrf
                     <div class="space-y-2">
                         <label class="text-sm font-semibold text-slate-300">Pilih Bahan Baku</label>
-                        <select id="selectKurang" name="material_id" class="w-full rounded-lg border border-slate-600 bg-slate-700/50 text-slate-100 px-3 py-2 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors" required>
-                            <option value="">-- Pilih Bahan --</option>
-                            @foreach($materials as $m)
-                                <option value="{{ $m->id }}">{{ $m->name }} (Sisa: {{ $m->current_stock }} {{ $m->unit }})</option>
-                            @endforeach
-                        </select>
+                        <div class="select-icon-wrapper">
+                            <i class="bi bi-box-seam select-icon"></i>
+                            <select id="selectKurang" name="material_id" class="w-full" required aria-label="Pilih bahan untuk pengurangan stok">
+                                <option value="">-- Pilih Bahan --</option>
+                                @foreach($materials as $m)
+                                    <option value="{{ $m->id }}">{{ $m->name }} (Sisa: {{ $m->current_stock }} {{ $m->unit }})</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div id="kurangStockInfo" class="text-xs text-slate-400 mt-1">Sisa: —</div>
                         <div id="error_kurang_material" class="hidden text-xs text-red-400 mt-1"></div>
                     </div>

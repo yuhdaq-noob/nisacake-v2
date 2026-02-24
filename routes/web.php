@@ -28,8 +28,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Endpoint API
     Route::post('/materials/reduce', [MaterialController::class, 'reduceStock'])->name('materials.reduce');
-    // FIXME: TIDAK DIPAKAI
-    // UI gudang menggunakan endpoint API /api/stocks/add (via gudang.js), bukan web route ini.
+    // Catatan: UI gudang menggunakan endpoint API /api/stocks/add (via gudang.js), bukan web route ini.
     Route::post('/stocks/add', [StockController::class, 'store'])->name('stocks.add');
     Route::get('/laporan/export', [ReportController::class, 'export'])->name('laporan.export');
 });

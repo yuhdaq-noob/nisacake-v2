@@ -1,7 +1,5 @@
 <?php
 
-// FIXME: PERHITUNGAN
-
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -22,7 +20,7 @@ class MaterialResource extends JsonResource
             'price_per_base_unit' => $this->price_per_base_unit,
             'current_stock' => $this->current_stock,
             'min_stock_level' => $this->min_stock_level,
-            // FIXME: PERHITUNGAN
+            // Status stok: Low Stock jika di bawah minimum, OK jika cukup
             'status' => $this->current_stock <= $this->min_stock_level ? 'Low Stock' : 'OK',
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
         ];

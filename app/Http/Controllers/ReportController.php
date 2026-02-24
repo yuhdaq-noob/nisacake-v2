@@ -1,7 +1,5 @@
 <?php
 
-// FIXME: PERHITUNGAN
-
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
@@ -35,8 +33,7 @@ class ReportController extends Controller
     public function export(Request $request)
     {
         $format = $request->query('format', 'excel'); // Format export (excel/pdf)
-        // TODO: BELUM DI IMPLEMENTASIKAN
-        // period & search sudah dibaca, tapi belum diterapkan untuk filter query export.
+        // Catatan: period & search parameter sudah dibaca, belum diterapkan untuk filter query export
         $period = $request->query('period', 'all'); // Periode filter (belum dipakai)
         $search = $request->query('search', '');    // Kata kunci pencarian (belum dipakai)
 

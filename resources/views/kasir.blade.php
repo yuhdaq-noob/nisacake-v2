@@ -60,19 +60,19 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto flex-1">
-                    <div class="min-h-0 overflow-y-auto">
-                        <table class="w-full text-xs sm:text-sm">
-                            <thead class="sticky top-0 bg-slate-700 border-b border-slate-600">
+                    <div class="table-scroll-container min-h-0 overflow-y-auto max-h-[400px]">
+                        <table class="w-full table-basic text-xs sm:text-sm">
+                            <thead class="sticky top-0">
                                 <tr>
-                                    <th class="text-left px-2 sm:px-6 py-2 sm:py-3 font-semibold text-slate-200">Produk</th>
-                                    <th class="text-right px-2 sm:px-6 py-2 sm:py-3 font-semibold text-slate-200">Harga</th>
-                                    <th class="text-center px-2 sm:px-6 py-2 sm:py-3 font-semibold text-slate-200">Qty</th>
-                                    <th class="text-right px-2 sm:px-6 py-2 sm:py-3 font-semibold text-slate-200">Subtotal</th>
-                                    <th class="text-center px-2 sm:px-6 py-2 sm:py-3 font-semibold text-slate-200">Aksi</th>
+                                    <th class="text-left" style="min-width: 120px;">Produk</th>
+                                    <th class="text-right" style="min-width: 80px;">Harga</th>
+                                    <th class="text-center" style="min-width: 50px;">Qty</th>
+                                    <th class="text-right" style="min-width: 80px;">Subtotal</th>
+                                    <th class="text-center" style="min-width: 60px;">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabelKeranjang" class="divide-y divide-slate-700">
-                                <tr><td colspan="5" class="text-center py-6 sm:py-8 text-slate-400 font-medium">Keranjang kosong. Tambahkan produk untuk memulai.</td></tr>
+                            <tbody id="tabelKeranjang">
+                                <tr><td colspan="5" class="table-empty-state"><p>Keranjang kosong. Tambahkan produk untuk memulai.</p></td></tr>
                             </tbody>
                         </table>
                     </div>

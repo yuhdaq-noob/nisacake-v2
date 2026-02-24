@@ -10,6 +10,7 @@ import {
     handleSessionExpired,
     showSuccess,
     showErrorToast,
+    confirmDialog,
 } from "./notifications.js";
 
 const apiProducts = "/api/products";
@@ -233,9 +234,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     if (btnTestTelegramKasir) {
         btnTestTelegramKasir.addEventListener("click", async () => {
-            const confirmSend = window.confirm(
-                "Kirim pesan tes Telegram sekarang?",
-            );
+            const confirmSend = await confirmDialog({
+                title: "Kirim Tes Telegram",
+                message: "Kirim pesan tes ke Telegram sekarang?",
+                type: "info",
+                confirmText: "Kirim",
+                cancelText: "Batal",
+            });
             if (!confirmSend) return;
 
             btnTestTelegramKasir.disabled = true;
@@ -320,9 +325,9 @@ function renderCart() {
 
     if (cart.length === 0) {
         tbody.innerHTML = `<tr>
-                <td colspan="5" class="text-center py-4 sm:py-5 text-slate-500">
-                    <span class="block mb-1 font-semibold text-xs sm:text-sm">Keranjang kosong</span>
-                    <small class="text-[0.65rem] sm:text-xs text-slate-400">Pilih produk untuk memulai.</small>
+                <td colspan="5" class="table-empty-state">
+                    <p>Keranjang kosong</p>
+                    <small class="text-slate-400">Pilih produk untuk memulai.</small>
                 </td>
             </tr>`;
         totalDisplay.innerText = "Rp 0";
@@ -341,12 +346,16 @@ function renderCart() {
         grandTotal += subtotal;
 
         html += `
-                <tr class="hover:bg-slate-50 border-b border-slate-100">
-                    <td class="font-semibold text-slate-900 px-1 sm:px-2 py-2 sm:py-2.5 text-[0.7rem] sm:text-xs">${item.name}</td>
-                    <td class="text-right text-slate-500 px-1 sm:px-2 py-2 sm:py-2.5 text-[0.7rem] sm:text-xs">${formatRupiah(priceNum)}</td>
-                    <td class="text-center font-semibold text-slate-900 px-1 sm:px-2 py-2 sm:py-2.5 text-[0.7rem] sm:text-xs">${item.quantity}</td>
-                    <td class="text-right font-semibold text-slate-900 px-1 sm:px-2 py-2 sm:py-2.5 text-[0.7rem] sm:text-xs">${formatRupiah(subtotal)}</td>
-                    <td class="text-center px-1 sm:px-2 py-2 sm:py-2.5"><button class="inline-flex items-center justify-center w-6 h-6 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200" onclick="hapusItem(${index})" type="button"><i class="bi bi-trash text-xs sm:text-sm"></i></button></td>
+                <tr class="hover:bg-slate-700/50 transition-colors">
+                    <td class="font-semibold text-slate-200 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">${item.name}</td>
+                    <td class="text-right text-slate-400 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">${formatRupiah(priceNum)}</td>
+                    <td class="text-center font-semibold text-cyan-400 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">${item.quantity}</td>
+                    <td class="text-right font-semibold text-slate-200 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">${formatRupiah(subtotal)}</td>
+                    <td class="text-center px-2 sm:px-4 py-2 sm:py-3">
+                        <button class="table-action-btn table-action-btn--delete" onclick="hapusItem(${index})" type="button" aria-label="Hapus item">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
                 </tr>
         `;
     });
@@ -775,18 +784,29 @@ function renderScheduledOrders(container, orders) {
 
                 <div class="border-t border-slate-700 mt-3 pt-3 flex items-center justify-between gap-3 flex-wrap">
                     <p class="text-xl font-bold text-white">${formatRupiah(order.total_price || 0)}</p>
-                    <button
-                        type="button"
-                        onclick="completeScheduledOrder(${order.id})"
-                        class="inline-flex items-center px-5 py-2.5 font-semibold shadow-sm hover:shadow-md transition bg-emerald-600 hover:bg-emerald-700 text-white rounded-md"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="w-3 h-3">
-                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
-                            <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Bayar</span>
-                        <span class="sm:hidden" style="font-size: 0.65rem;">Bayar</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onclick="cancelScheduledOrder(${order.id})"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-600 border border-red-500/30 hover:border-red-600 rounded-lg transition-all duration-200"
+                            aria-label="Batalkan pesanan"
+                        >
+                            <i class="bi bi-x-lg"></i>
+                            <span class="hidden sm:inline">Batal</span>
+                        </button>
+                        <button
+                            type="button"
+                            onclick="completeScheduledOrder(${order.id})"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold shadow-sm hover:shadow-md transition bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="w-3 h-3">
+                                <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
+                                <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Bayar</span>
+                            <span class="sm:hidden">Bayar</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -875,6 +895,61 @@ function showRefreshSuccessAnimation() {
     }, 900);
 }
 
+/**
+ * Cancel scheduled pre-order
+ * Changes order status from PRE_ORDER to CANCELLED
+ */
+async function cancelScheduledOrder(orderId) {
+    // Konfirmasi sebelum membatalkan
+    const confirmCancel = await confirmDialog({
+        title: "Batalkan Pesanan",
+        message: `Yakin ingin membatalkan pesanan #${orderId}?\n\nPesanan yang dibatalkan tidak dapat dikembalikan.`,
+        type: "danger",
+        confirmText: "Ya, Batalkan",
+        cancelText: "Tidak",
+    });
+    if (!confirmCancel) return;
+
+    hideError("error_checkout");
+
+    try {
+        const response = await fetch(`/api/orders/${orderId}/cancel`, {
+            method: "PATCH",
+            headers: {
+                ...getAuthHeaders(),
+            },
+        });
+
+        if (response.status === 401) {
+            handleSessionExpired();
+            return;
+        }
+
+        if (!response.ok) {
+            const contentType = response.headers.get("content-type");
+            let errorMessage = "An error occurred.";
+
+            if (contentType?.includes("application/json")) {
+                const result = await response.json();
+                errorMessage = result.message || errorMessage;
+            }
+
+            showError("error_checkout", "Failed: " + errorMessage);
+            return;
+        }
+
+        showSuccess(`Pesanan #${orderId} berhasil dibatalkan.`);
+        // Refresh jadwal pesanan list agar pesanan yang dibatalkan otomatis hilang
+        await loadScheduledOrders();
+    } catch (error) {
+        console.error("Error cancelling order:", error);
+        showError(
+            "error_checkout",
+            error.message || "System error occurred. Please try again.",
+        );
+    }
+}
+
 // Expose functions to global scope so inline onclick in Blade works when bundled by Vite
 window.tambahKeKeranjang = tambahKeKeranjang;
 window.hapusItem = hapusItem;
@@ -882,3 +957,4 @@ window.prosesTransaksi = prosesTransaksi;
 window.jadwalkanPesanan = jadwalkanPesanan;
 window.loadScheduledOrders = loadScheduledOrders;
 window.completeScheduledOrder = completeScheduledOrder;
+window.cancelScheduledOrder = cancelScheduledOrder;

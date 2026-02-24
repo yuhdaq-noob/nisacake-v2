@@ -1,6 +1,6 @@
 <?php
 
-// FIXME: TABEL ORDER_ITEMS
+// Tabel untuk menyimpan detail item dalam pesanan
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

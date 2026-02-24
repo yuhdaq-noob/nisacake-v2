@@ -1,7 +1,5 @@
 <?php
 
-// FIXME: PERHITUNGAN
-
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -21,8 +19,7 @@ class UpdateProductRequest extends FormRequest
         return [
             'name' => 'sometimes|string|max:255|unique:products,name,' . $this->product->id,
             'selling_price' => 'sometimes|numeric|min:0|max:99999999.99',
-            // FIXME: TIDAK DIPAKAI
-            // production_cost belum dipakai untuk HPP otomatis/laporan.
+            // Catatan: production_cost belum dipakai untuk HPP otomatis/laporan (reserved field)
             'production_cost' => 'sometimes|numeric|min:0|max:99999999.99',
             'overhead_cost_per_unit' => 'sometimes|numeric|min:0|max:99999999.99',
             'description' => 'sometimes|string|max:1000|nullable',

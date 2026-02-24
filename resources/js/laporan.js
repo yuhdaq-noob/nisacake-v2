@@ -268,15 +268,79 @@ function bindExportDropdown() {
     const menu = document.querySelector("[data-dropdown-menu]");
     if (!trigger || !menu) return;
 
-    const hide = () => menu.classList.add("hidden");
+    const show = () => {
+        menu.classList.remove("hidden");
+        // Small delay to allow display:block to apply before adding show class for animation
+        requestAnimationFrame(() => {
+            menu.classList.add("show");
+            trigger.classList.add("active");
+            trigger.setAttribute("aria-expanded", "true");
+        });
+    };
+
+    const hide = () => {
+        menu.classList.remove("show");
+        trigger.classList.remove("active");
+        trigger.setAttribute("aria-expanded", "false");
+        // Wait for animation to finish before hiding
+        setTimeout(() => {
+            if (!menu.classList.contains("show")) {
+                menu.classList.add("hidden");
+            }
+        }, 200);
+    };
+
+    const toggle = () => {
+        if (menu.classList.contains("show")) {
+            hide();
+        } else {
+            show();
+        }
+    };
 
     trigger.addEventListener("click", (e) => {
         e.stopPropagation();
-        menu.classList.toggle("hidden");
+        toggle();
     });
 
+    // Close when clicking outside
     document.addEventListener("click", (e) => {
-        if (!menu.contains(e.target) && !trigger.contains(e.target)) hide();
+        if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+            hide();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && menu.classList.contains("show")) {
+            hide();
+            trigger.focus();
+        }
+    });
+
+    // Handle menu item clicks
+    const menuItems = menu.querySelectorAll('[role="menuitem"]');
+    menuItems.forEach((item, index) => {
+        item.addEventListener("click", () => {
+            hide();
+        });
+
+        // Keyboard navigation
+        item.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                const next = menuItems[index + 1] || menuItems[0];
+                next.focus();
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                const prev =
+                    menuItems[index - 1] || menuItems[menuItems.length - 1];
+                prev.focus();
+            } else if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                item.click();
+            }
+        });
     });
 }
 

@@ -13,15 +13,13 @@ use Illuminate\Support\Facades\Route;
 
 // Rute publik
 Route::post('/login', [AuthController::class, 'login']);
-// FIXME: TIDAK DIPAKAI
-// Endpoint register belum dipakai oleh UI (tidak ada halaman/JS register).
+// Catatan: Endpoint register belum dipakai oleh UI
 Route::post('/register', [AuthController::class, 'register']);
 
 // Rute yang dilindungi (butuh autentikasi)
 Route::middleware('auth:sanctum')->group(function () {
     // Endpoint profil pengguna
-    // FIXME: TIDAK DIPAKAI
-    // Endpoint ini belum dipakai oleh UI saat ini.
+    // Catatan: Endpoint ini belum dipakai oleh UI saat ini
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -31,32 +29,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jadwal-pesanan', [OrderController::class, 'preOrder']);
     Route::get('/jadwal-pesanan', [OrderController::class, 'getScheduledOrders']);
     Route::post('/orders/{order}/execute-preorder', [OrderController::class, 'executePreOrder']);
-    // FIXME: TIDAK DIPAKAI
-    // Endpoint list orders belum dipakai oleh UI saat ini.
+    // Catatan: Endpoint list orders belum dipakai oleh UI saat ini
     Route::get('/orders', [OrderController::class, 'index']);
-    // FIXME: TIDAK DIPAKAI
-    // Endpoint detail order belum dipakai oleh UI saat ini.
+    // Catatan: Endpoint detail order belum dipakai oleh UI saat ini
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
+    Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
 
     // Manajemen Produk
     Route::get('/products', [ProductController::class, 'index']);
     Route::post('/products', [ProductController::class, 'store']);
-    // FIXME: TIDAK DIPAKAI
-    // Endpoint detail produk belum dipakai oleh UI saat ini.
+    // Catatan: Endpoint detail produk belum dipakai oleh UI saat ini
     Route::get('/products/{product}', [ProductController::class, 'show']);
     Route::patch('/products/{product}', [ProductController::class, 'update']);
 
     // Manajemen Bahan
     Route::get('/materials', [MaterialController::class, 'index']);
     Route::patch('/materials/{material}/price', [MaterialController::class, 'updatePrice']);
-    // FIXME: TIDAK DIPAKAI
-    // UI gudang memakai web route /materials/reduce (form submit), bukan API ini.
+    // Catatan: UI gudang memakai web route /materials/reduce (form submit), bukan API ini
     Route::post('/materials/reduce', [MaterialController::class, 'reduceStock']);
     Route::get('/materials/price-history', [MaterialPriceLogController::class, 'index']);
 
     // Pembuatan Laporan
-    // FIXME: PERHITUNGAN
+    // Catatan: Laporan masih dalam pengembangan
     Route::get('/reports', [ReportController::class, 'index']);
 
     // Pengaturan Overhead

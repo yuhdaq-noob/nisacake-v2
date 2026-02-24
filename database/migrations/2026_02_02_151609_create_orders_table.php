@@ -1,6 +1,6 @@
 <?php
 
-// FIXME: TABEL ORDERS
+// Tabel untuk menyimpan header pesanan
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

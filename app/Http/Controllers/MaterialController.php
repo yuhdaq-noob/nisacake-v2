@@ -24,7 +24,6 @@ class MaterialController extends Controller
     ) {}
 
     // Mengambil semua bahan baku
-    // FIXME: bisa pindah ke servi
     public function index(): AnonymousResourceCollection
     {
         $materials = Material::with('stockLogs')
@@ -65,8 +64,7 @@ class MaterialController extends Controller
         }
     }
 
-    // FIXME: sebaiknya pindah ke MODEL
-    // MengUpdate harga material per base unit dan sinkron harga per unit kecil
+    // Mengupdate harga material per base unit dan sinkron harga per unit kecil
     public function updatePrice(UpdateMaterialPriceRequest $request, Material $material): JsonResponse
     {
         // Normalisasi satuan dan mapping konversi seharusnya ada di model

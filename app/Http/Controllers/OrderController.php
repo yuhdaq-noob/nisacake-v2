@@ -61,6 +61,27 @@ class OrderController extends Controller
         ]);
     }
 
+    // Membatalkan pre-order
+    public function cancel(Order $order): JsonResponse
+    {
+        // Validasi bahwa order yang diakses adalah pre-order
+        if ($order->status !== OrderStatus::PRE_ORDER) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hanya pesanan terjadwal yang dapat dibatalkan.',
+            ], 400);
+        }
+
+        $order->status = OrderStatus::CANCELLED->value;
+        $order->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pesanan berhasil dibatalkan.',
+            'data' => new OrderResource($order->load('items.product')),
+        ]);
+    }
+
     // Membuat order baru
     public function store(StoreOrderRequest $request): JsonResponse
     {

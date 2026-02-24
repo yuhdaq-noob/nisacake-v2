@@ -74,27 +74,36 @@
                 <h5 class="text-sm sm:text-base font-semibold text-white flex items-center gap-2"><i class="bi bi-credit-card-2-front-fill text-cyan-400"></i> Rincian Transaksi</h5>
                 <div class="flex flex-wrap gap-2 items-center">
                     <div class="relative">
-                        <button type="button" class="btn-secondary" style="padding: 0.375rem 0.625rem; font-size: 0.75rem;" data-dropdown-trigger>
-                            Export
-                            <i class="bi bi-chevron-down text-xs"></i>
+                        <button type="button" class="dropdown-trigger" data-dropdown-trigger aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-download"></i>
+                            <span>Export</span>
+                            <i class="bi bi-chevron-down"></i>
                         </button>
-                        <div class="hidden absolute right-0 mt-2 w-40 rounded-xl border border-slate-600 bg-slate-700 shadow-lg overflow-hidden z-20" data-dropdown-menu>
-                            <a class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-600 transition-colors" href="#" id="btnExportExcel">Excel (.xlsx)</a>
-                            <a class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-600 transition-colors border-t border-slate-600" href="#" id="btnExportPdf">PDF (.pdf)</a>
+                        <div class="dropdown-menu dropdown-menu-right hidden" data-dropdown-menu role="menu">
+                            <a class="dropdown-item" href="#" id="btnExportExcel" role="menuitem">
+                                <i class="bi bi-file-earmark-excel text-emerald-400"></i>
+                                <span>Excel (.xlsx)</span>
+                            </a>
+                            <a class="dropdown-item" href="#" id="btnExportPdf" role="menuitem">
+                                <i class="bi bi-file-earmark-pdf text-red-400"></i>
+                                <span>PDF (.pdf)</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="flex flex-col gap-2 items-stretch">
                 <input type="text" id="searchInput" class="w-full rounded-lg border border-slate-600 bg-slate-700/50 px-3 py-2 text-xs sm:text-sm font-medium text-slate-100 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors placeholder-slate-500" placeholder="Cari pelanggan / produk...">
-                <select id="filterWaktu" class="w-full rounded-lg border border-slate-600 bg-slate-700/50 px-3 py-2 text-xs sm:text-sm font-medium text-slate-100 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors cursor-pointer">
-                    <option value="all">Semua Waktu</option>
-                    <option value="today">Hari Ini</option>
-                    <option value="last7">7 Hari Terakhir</option>
-                    <option value="month">Bulan Ini</option>
-                    <option value="last_month">Bulan Lalu</option>
-                    <option value="year">Tahun Ini</option>
-                </select>
+                <div class="relative">
+                    <select id="filterWaktu" class="filter-select w-full" aria-label="Filter waktu">
+                        <option value="all">📅 Semua Waktu</option>
+                        <option value="today">📆 Hari Ini</option>
+                        <option value="last7">📊 7 Hari Terakhir</option>
+                        <option value="month">📈 Bulan Ini</option>
+                        <option value="last_month">📉 Bulan Lalu</option>
+                        <option value="year">🗓️ Tahun Ini</option>
+                    </select>
+                </div>
             </div>
         </div>
         <div class="flex-1 overflow-x-auto">

@@ -123,6 +123,12 @@ body {
     align-items: center;
     position: relative;
     z-index: 10;
+    width: 100%;
+}
+
+.password-input-wrapper .form-control {
+    padding-right: 44px;
+    width: 100%;
 }
 
 .toggle-password {
@@ -130,23 +136,33 @@ body {
     border: none;
     outline: none;
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 44px;
+    height: 100%;
     cursor: pointer;
-    padding: 6px 4px;
+    padding: 0;
+    margin: 0;
     color: #64748b;
     z-index: 20;
     display: flex;
     align-items: center;
+    justify-content: center;
     opacity: 0.7;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: auto;
+    border-radius: 0 10px 10px 0;
 }
 
 .toggle-password:hover {
     color: #06b6d4;
     opacity: 1;
+}
+
+.toggle-password:focus-visible {
+    outline: 2px solid #06b6d4;
+    outline-offset: -2px;
 }
 
 .input-group label {
@@ -486,8 +502,14 @@ body {
         border-radius: 8px;
     }
 
+    .password-input-wrapper .form-control {
+        padding-right: 40px;
+    }
+
     .toggle-password {
-        right: 10px;
+        right: 0;
+        width: 40px;
+        border-radius: 0 8px 8px 0;
     }
 
     .btn-login {
@@ -606,6 +628,15 @@ body {
     .form-control {
         padding: 8px 10px;
         font-size: 14px;
+    }
+
+    .password-input-wrapper .form-control {
+        padding-right: 36px;
+    }
+
+    .toggle-password {
+        width: 36px;
+        border-radius: 0 8px 8px 0;
     }
 
     .btn-login {
