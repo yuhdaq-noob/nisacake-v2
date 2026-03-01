@@ -6,10 +6,10 @@ use App\Models\OverheadSetting;
 use Illuminate\Http\JsonResponse;
 
 
-// Controller untuk pengaturan overhead
+// Pengaturan overhead
 class OverheadSettingController extends Controller
 {
-    // Mengambil semua setting overhead yang dipakai untuk perhitungan HPP
+    // Ambil semua setting overhead
 	public function index(): JsonResponse
 	{
 	    $settings = OverheadSetting::query()

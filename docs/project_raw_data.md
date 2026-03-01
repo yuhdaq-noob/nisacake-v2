@@ -32,11 +32,18 @@ Dari `composer.json` key `scripts.setup`:
 ```
 bash
 composer install
-cp .env.example .env
+@php -r "file_exists('.env') || copy('.env.example', '.env');"
 php artisan key:generate
-php artisan migrate --seed
+php artisan migrate --force
 npm install
 npm run build
+```
+
+Catatan: `scripts.setup` tidak menjalankan seeder. Jika membutuhkan data awal/dummy, jalankan manual:
+
+```
+bash
+php artisan db:seed
 ```
 
 ### 2.2 Perintah Development
@@ -209,8 +216,12 @@ nisacake/
 ├── tests/
 │   ├── TestCase.php
 │   ├── Unit/
-│   │   └── ExampleTest.php
-│   └── Feature/
+│   │   ├── ExampleTest.php
+│   │   ├── MaterialServiceTest.php
+│   │   ├── OverheadServiceTest.php
+│   │   ├── StockServiceTest.php
+│   │   └── TelegramServiceTest.php
+│   └── Feature/ (currently empty)
 ├── vendor/
 ├── .env.example
 ├── composer.json
@@ -267,14 +278,14 @@ nisacake/
     - Set field `scheduled_at` (waktu pelunasan)
     - Tidak mengurangi stok
     - Saat pelunasan: jalankan `executePreOrder()` - validasi stok - kurangi stok - ubah status ke `COMPLETED`
-- **Cancel Order**: Ubah status menjadi `CANCELLED` (rollback stok jika sudah dikurangi)
+- **Cancel Order**: Endpoint API tersedia untuk membatalkan order berstatus `PRE_ORDER` (tanpa rollback stok karena stok belum dikurangi)
 - **List & Detail Order**: Lihat semua orders atau detail order + items
 
 ### 4.6 Laporan & Analytics
 
 - **Laporan Omzet**: Group by tanggal/periode, hitung total penjualan, total HPP, margin
 - **Laporan per Produk**: Hitung qty terjual, omzet per produk, HPP, kontribusi margin
-- **Export Excel**: Generate file Excel dengan data laporan (via `Exports/LaporanExport.php`)
+- **Export Excel/PDF**: Generate file laporan dalam format Excel atau PDF (via `Exports/LaporanExport.php` dan DOMPDF)
 - **Dashboard Kasir**: Summary hari ini (omzet, transaksi, HPP)
 - **Dashboard Gudang**: Summary stok (current stok vs min level, alert bahan kurang)
 
@@ -303,7 +314,6 @@ nisacake/
 
 ```
 users
-├── 1:N relationship dengan orders (customer history)
 └── 1:N relationship dengan material_price_logs (siapa yang update harga)
 
 materials
@@ -319,7 +329,6 @@ products
 
 orders
 ├── 1:N dengan order_items (line items dalam order)
-├── Relation ke User (customer_name stored, tidak FK eksplisit)
 └── 1:N dengan notification_logs (reminder Telegram)
 
 order_items
@@ -348,56 +357,65 @@ notification_logs
 
 File: `routes/web.php`
 
-| Method | Route                    | Controller                   | Fungsi            | Auth |
-| ------ | ------------------------ | ---------------------------- | ----------------- | ---- |
-| GET    | `/login`                 | LoginController@index        | Tampil form login | No   |
-| POST   | `/login`                 | LoginController@authenticate | Proses login      | No   |
-| POST   | `/logout`                | LoginController@logout       | Logout            | Yes  |
-| GET    | `/`                      | Redirect ke `/kasir`         | Home redirect     | Yes  |
-| GET    | `/kasir`                 | View render                  | Dashboard kasir   | Yes  |
-| GET    | `/gudang`                | InventoryController@index    | Dashboard gudang  | Yes  |
-| GET    | `/admin/telegram/test`   | TelegramController@test      | Test Telegram     | Yes  |
-| GET    | `/admin/telegram/health` | TelegramController@health    | Health check      | Yes  |
-| GET    | `/laporan`               | View render                  | Halaman laporan   | Yes  |
-| POST   | `/stocks/add`            | StockController@store        | Tambah stok       | Yes  |
-| GET    | `/laporan/export`        | ReportController@export      | Export Excel      | Yes  |
+| Method | Route                    | Controller                     | Fungsi              | Auth |
+| ------ | ------------------------ | ------------------------------ | ------------------- | ---- |
+| GET    | `/login`                 | LoginController@index          | Tampil form login   | No   |
+| POST   | `/login`                 | LoginController@authenticate   | Proses login        | No   |
+| POST   | `/logout`                | LoginController@logout         | Logout              | Yes  |
+| GET    | `/`                      | Redirect ke `/kasir`           | Home redirect       | Yes  |
+| GET    | `/kasir`                 | View render                    | Dashboard kasir     | Yes  |
+| GET    | `/gudang`                | InventoryController@index      | Dashboard gudang    | Yes  |
+| GET    | `/admin/telegram/test`   | TelegramController@test        | Test Telegram       | Yes  |
+| GET    | `/admin/telegram/health` | TelegramController@health      | Health check        | Yes  |
+| GET    | `/laporan`               | View render                    | Halaman laporan     | Yes  |
+| POST   | `/materials/reduce`      | MaterialController@reduceStock | Kurangi stok manual | Yes  |
+| POST   | `/stocks/add`            | StockController@store          | Tambah stok         | Yes  |
+| GET    | `/laporan/export`        | ReportController@export        | Export Excel/PDF    | Yes  |
 
 ### 6.2 API Routes (Sanctum Token-Based Auth)
 
 File: `routes/api.php`
 
-| Method        | Endpoint                        | Controller                         | Fungsi                         |
-| ------------- | ------------------------------- | ---------------------------------- | ------------------------------ |
-| **Auth**:     |                                 |                                    |                                |
-| POST          | `/login`                        | AuthController@login               | API login (token)              |
-| POST          | `/register`                     | AuthController@register            | Register (unused in UI)        |
-| POST          | `/logout`                       | AuthController@logout              | Logout token                   |
-| GET           | `/user`                         | inline                             | Get current user (unused)      |
-| **Order**:    |                                 |                                    |                                |
-| POST          | `/buat-pesanan`                 | OrderController@store              | Create order direct            |
-| POST          | `/jadwal-pesanan`               | OrderController@preOrder           | Create pre-order               |
-| GET           | `/jadwal-pesanan`               | OrderController@getScheduledOrders | List pre-orders                |
-| POST          | `/orders/{id}/execute-preorder` | OrderController@executePreOrder    | Execute pre-order              |
-| GET           | `/orders`                       | OrderController@index              | List orders (unused in UI)     |
-| GET           | `/orders/{id}`                  | OrderController@show               | Detail order (unused in UI)    |
-| PATCH         | `/orders/{id}/complete`         | OrderController@complete           | Mark complete                  |
-| **Product**:  |                                 |                                    |                                |
-| GET           | `/products`                     | ProductController@index            | List products                  |
-| POST          | `/products`                     | ProductController@store            | Create product                 |
-| GET           | `/products/{id}`                | ProductController@show             | Detail (unused in UI)          |
-| PATCH         | `/products/{id}`                | ProductController@update           | Update product                 |
-| **Material**: |                                 |                                    |                                |
-| GET           | `/materials`                    | MaterialController@index           | List materials                 |
-| PATCH         | `/materials/{id}/price`         | MaterialController@updatePrice     | Update harga bahan             |
-| POST          | `/materials/reduce`             | MaterialController@reduceStock     | Reduce manually (unused in UI) |
-| GET           | `/materials/price-history`      | MaterialPriceLogController@index   | List price history             |
-| **Stock**:    |                                 |                                    |                                |
-| POST          | `/stocks/add`                   | StockController@store              | Add stock                      |
-| GET           | `/stocks/history`               | StockController@index              | Stock logs history             |
-| **Report**:   |                                 |                                    |                                |
-| GET           | `/reports`                      | ReportController@index             | Get reports data               |
-| **Overhead**: |                                 |                                    |                                |
-| GET           | `/overhead-settings`            | OverheadSettingController@index    | List overhead config           |
+| Method        | Endpoint                           | Controller                         | Fungsi                         |
+| ------------- | ---------------------------------- | ---------------------------------- | ------------------------------ |
+| **Auth**:     |                                    |                                    |                                |
+| POST          | `/login`                           | AuthController@login               | API login (token)              |
+| POST          | `/register`                        | AuthController@register            | Register (unused in UI)        |
+| POST          | `/logout`                          | AuthController@logout              | Logout token                   |
+| GET           | `/user`                            | inline                             | Get current user (unused)      |
+| **Order**:    |                                    |                                    |                                |
+| POST          | `/buat-pesanan`                    | OrderController@store              | Create order direct            |
+| POST          | `/jadwal-pesanan`                  | OrderController@preOrder           | Create pre-order               |
+| GET           | `/jadwal-pesanan`                  | OrderController@getScheduledOrders | List pre-orders                |
+| POST          | `/orders/{order}/execute-preorder` | OrderController@executePreOrder    | Execute pre-order              |
+| GET           | `/orders`                          | OrderController@index              | List orders (unused in UI)     |
+| GET           | `/orders/{order}`                  | OrderController@show               | Detail order (unused in UI)    |
+| PATCH         | `/orders/{order}/complete`         | OrderController@complete           | Mark complete                  |
+| PATCH         | `/orders/{order}/cancel`           | OrderController@cancel             | Cancel pre-order               |
+| **Product**:  |                                    |                                    |                                |
+| GET           | `/products`                        | ProductController@index            | List products                  |
+| POST          | `/products`                        | ProductController@store            | Create product                 |
+| GET           | `/products/{product}`              | ProductController@show             | Detail (unused in UI)          |
+| PATCH         | `/products/{product}`              | ProductController@update           | Update product                 |
+| **Material**: |                                    |                                    |                                |
+| GET           | `/materials`                       | MaterialController@index           | List materials                 |
+| PATCH         | `/materials/{material}/price`      | MaterialController@updatePrice     | Update harga bahan             |
+| POST          | `/materials/reduce`                | MaterialController@reduceStock     | Reduce manually (unused in UI) |
+| GET           | `/materials/price-history`         | MaterialPriceLogController@index   | List price history             |
+| **Stock**:    |                                    |                                    |                                |
+| POST          | `/stocks/add`                      | StockController@store              | Add stock                      |
+| GET           | `/stocks/history`                  | StockController@index              | Stock logs history             |
+| **Report**:   |                                    |                                    |                                |
+| GET           | `/reports`                         | ReportController@index             | Get reports data               |
+| **Overhead**: |                                    |                                    |                                |
+| GET           | `/overhead-settings`               | OverheadSettingController@index    | List overhead config           |
+
+### 6.3 Console Schedule (Cron)
+
+File: `routes/console.php`
+
+- Scheduler menjalankan command `orders:send-reminders` setiap hari pukul `18:10` timezone `Asia/Jakarta`.
+- Command mengambil order yang `scheduled_at` besok, `status != completed`, dan `is_notified = false`, lalu dispatch `SendTelegramReminderJob`.
 
 ---
 
@@ -477,18 +495,18 @@ File: `routes/api.php`
 
 **Header pesanan dengan total harga dan HPP**
 
-| Kolom         | Tipe          | Nullable | Default        | Keterangan                                                |
-| ------------- | ------------- | -------- | -------------- | --------------------------------------------------------- |
-| id            | bigint        | -        | auto_increment | Primary key                                               |
-| customer_name | string        | No       | -              | Nama pembeli                                              |
-| order_date    | datetime      | No       | -              | Tanggal pemesanan (saat create order)                     |
-| status        | enum/string   | No       | -              | Status order (pre_order, completed, cancelled)            |
-| total_price   | decimal(15,2) | No       | -              | Total harga jual bruto (Rp)                               |
-| total_hpp     | decimal(15,2) | No       | -              | Total harga pokok penjualan (Rp)                          |
-| scheduled_at  | datetime      | Yes      | -              | Waktu pelunasan pre-order (nullable untuk order langsung) |
-| is_notified   | boolean       | No       | false          | Apakah sudah dikirim notifikasi Telegram                  |
-| created_at    | timestamp     | -        | -              | -                                                         |
-| updated_at    | timestamp     | -        | -              | -                                                         |
+| Kolom         | Tipe (DB Aktual) | Nullable | Default        | Keterangan                                                |
+| ------------- | ---------------- | -------- | -------------- | --------------------------------------------------------- |
+| id            | bigint           | -        | auto_increment | Primary key                                               |
+| customer_name | string           | No       | -              | Nama pembeli                                              |
+| order_date    | date             | No       | -              | Tanggal pemesanan (di-cast ke datetime pada model)        |
+| status        | string           | No       | pending        | Status order (pre_order, completed, cancelled)            |
+| total_price   | integer          | No       | 0              | Total harga jual bruto (Rp)                               |
+| total_hpp     | integer          | No       | 0              | Total harga pokok penjualan (Rp)                          |
+| scheduled_at  | datetime         | Yes      | -              | Waktu pelunasan pre-order (nullable untuk order langsung) |
+| is_notified   | boolean          | No       | false          | Apakah sudah dikirim notifikasi Telegram                  |
+| created_at    | timestamp        | -        | -              | -                                                         |
+| updated_at    | timestamp        | -        | -              | -                                                         |
 
 **Cast di Model**: `status` - OrderStatus enum; `order_date`, `scheduled_at` - datetime; `total_price`, `total_hpp` - decimal:2; `is_notified` - boolean
 
@@ -523,13 +541,18 @@ File: `routes/api.php`
 | ----------- | --------- | -------- | ---------------------------------------------------- |
 | id          | bigint    | -        | Primary key                                          |
 | material_id | bigint FK | No       | Ref ke `materials.id` (cascade delete)               |
-| type        | enum      | No       | Tipe: 'in' (masuk), 'out' (keluar)                   |
+| type        | enum      | No       | Tipe DB: 'in', 'out', 'adjustment'                   |
 | amount      | integer   | No       | Jumlah perubahan (dalam unit material)               |
 | description | string    | Yes      | Keterangan (misal: "Belanja", "Produksi Order #123") |
 | created_at  | timestamp | -        | -                                                    |
 | updated_at  | timestamp | -        | -                                                    |
 
 **Cast di Model**: `type` - StockLogType enum; `amount` - integer
+
+**Catatan Implementasi**:
+
+- Enum aplikasi `StockLogType` saat ini hanya mendefinisikan `in` dan `out`.
+- Nilai `adjustment` tersedia di skema DB, tetapi belum dipakai oleh service/controller saat ini.
 
 ---
 
@@ -616,7 +639,7 @@ Standard Laravel users table dengan fields: id, name, email, password, email_ver
 | --------- | --------- | ---------- | ------------------------------------------------------------ |
 | pre_order | PRE_ORDER | Pre-Order  | Pesanan terjadwal, belum kurangi stok, pembayaran belakangan |
 | completed | COMPLETED | Selesai    | Pesanan selesai (stok sudah dikurangi)                       |
-| cancelled | CANCELLED | Dibatalkan | Pesanan dibatalkan (rollback stok jika perlu)                |
+| cancelled | CANCELLED | Dibatalkan | Pesanan dibatalkan (saat ini digunakan untuk pre-order)      |
 
 **Method**: `label()` mengembalikan teks readable untuk ditampilkan di UI.
 
@@ -829,8 +852,6 @@ Order.total_price = Sum dari (selling_price(product) x quantity) untuk semua ord
 
 #### 11.2.2 Formula HPP Lengkap (Menggunakan Variabel Matematika)
 
-Berikut adalah formula HPP yang sama menggunakan variabel matematika standar:
-
 ```
 Notasi:
 - H = Total HPP (Harga Pokok Penjualan total untuk seluruh pesanan)
@@ -1037,6 +1058,12 @@ Konversi pre-order dari PRE_ORDER ke COMPLETED:
 3. Kurangi stok
 4. Update status -> COMPLETED, set order_date = now()
 
+#### Catatan cancel order
+
+- Alur cancel ada di `OrderController::cancel()` (bukan di `OrderService`).
+- Saat ini cancel hanya diizinkan untuk status `PRE_ORDER`.
+- Tidak ada rollback stok karena stok memang belum terpotong pada fase pre-order.
+
 #### calculateRealTimeHPP(Product $product, int $quantity)
 
 Hitung HPP real-time sesuai BOM dan harga material saat ini.
@@ -1085,11 +1112,36 @@ Konversi harga unit kecil -> base unit. Return array `['base_unit' => ..., 'pric
 
 ---
 
-## 13. Job Queue & Asynchronous Processing
+## 13. Job Queue, Command, & Scheduling
 
-### SendTelegramReminderJob (`app/Jobs/SendTelegramReminderJob.php`)
+### 13.1 Console Command (`app/Console/Commands/SendOrderReminders.php`)
 
-**Trigger**: Ketika order dibuat (khususnya pre-order reminder menjelang scheduled_at).
+Command signature:
+
+```
+bash
+php artisan orders:send-reminders
+```
+
+Opsi tambahan:
+
+```
+bash
+php artisan orders:send-reminders --dry-run
+```
+
+Fungsi utama:
+
+- Mengambil order `scheduled_at` besok
+- Filter: `status != completed` dan `is_notified = false`
+- Menyusun pesan Telegram per order
+- Dispatch `SendTelegramReminderJob` ke queue
+
+`routes/console.php` menjadwalkan command ini harian pukul `18:10` (`Asia/Jakarta`).
+
+### 13.2 SendTelegramReminderJob (`app/Jobs/SendTelegramReminderJob.php`)
+
+**Trigger**: Saat command `orders:send-reminders` melakukan dispatch ke queue.
 
 **Parameter**: `$orderId`, `$payload` (isi pesan)
 
@@ -1134,6 +1186,15 @@ Setiap endpoint API menggunakan `FormRequest` validation untuk:
 ### 14.3 PHPUnit Tests
 
 **Lokasi**: `tests/Unit/`, `tests/Feature/`
+
+Status saat ini:
+
+- `tests/Unit/ExampleTest.php`
+- `tests/Unit/MaterialServiceTest.php`
+- `tests/Unit/OverheadServiceTest.php`
+- `tests/Unit/StockServiceTest.php`
+- `tests/Unit/TelegramServiceTest.php`
+- `tests/Feature/` masih kosong
 
 **Konfigurasi**: `phpunit.xml`
 
@@ -1273,22 +1334,23 @@ php artisan migrate --seed
 Dokumen ini menyediakan:
 
 - Spesifikasi lengkap proyek (fitur, requirements, architecture)
-- Struktur database dengan 9 tabel utama + relationships
+- Struktur database domain dengan 10 tabel utama (`users`, `materials`, `products`, `product_materials`, `orders`, `order_items`, `stock_logs`, `material_price_logs`, `overhead_settings`, `notification_logs`) + tabel framework Laravel (`cache`, `jobs`, `personal_access_tokens`)
 - Perhitungan formula overhead dan HPP dengan contoh numerik
 - Route mapping untuk web dan API endpoints
 - Service logic untuk order, stok, material
 - Master data 27 materials, 21 products, 200 dummy orders
 - Exception handling dan validasi data
+- Command + scheduler reminder Telegram
 
 Gunakan dokumen ini sebagai **bahan referensi mentah** saat menulis bab analisis, desain, implementasi, dan evaluasi skripsi.
 
 ---
 
-**Terakhir update**: 22 Februari 2026
+**Terakhir update**: 1 Maret 2026
 
-## 17. UI/UX Design System
+## 18. UI/UX Design System
 
-### 17.1 Design Philosophy
+### 18.1 Design Philosophy
 
 - **Dark Theme**: Base colors #0f172a (slate-900) dan #1e293b (slate-800)
 - **Accent Color**: Cyan (#06b6d4) untuk highlights dan interactive elements
@@ -1296,14 +1358,14 @@ Gunakan dokumen ini sebagai **bahan referensi mentah** saat menulis bab analisis
 - **Accessibility-First**: Keyboard navigation, ARIA labels, focus management, screen reader support
 - **Smooth Animations**: cubic-bezier transitions untuk micro-interactions
 
-### 17.2 Tailwind CSS v4 Configuration
+### 18.2 Tailwind CSS v4 Configuration
 
 - **Version**: 4.0.0 dengan Vite integration via `@tailwindcss/vite`
 - **Architecture**: Hybrid approach - Tailwind utilities + custom CSS components
 - **Design Tokens**: Custom CSS variables di `:root` untuk konsistensi
 - **Responsive**: Mobile-first dengan breakpoints sm, md, lg, xl
 
-### 17.3 Component Library
+### 18.3 Component Library
 
 | Component               | File                           | Features                                                                                               |
 | ----------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------ |
@@ -1315,7 +1377,7 @@ Gunakan dokumen ini sebagai **bahan referensi mentah** saat menulis bab analisis
 | **Tables**              | `app.css`                      | Dark headers, hover states, sticky headers, custom scrollbar, action buttons                           |
 | **Forms**               | `app.css`                      | Custom inputs, select with icons, focus states, validation styling                                     |
 
-### 17.4 Notification System Details
+### 18.4 Notification System Details
 
 **Toast Notifications:**
 
@@ -1333,7 +1395,7 @@ Gunakan dokumen ini sebagai **bahan referensi mentah** saat menulis bab analisis
 - Icon: Animated bounce dengan background rounded
 - Buttons: Gradient dengan hover lift effect
 
-### 17.5 File Kunci untuk UI/UX
+### 18.5 File Kunci untuk UI/UX
 
 | Purpose             | File                               | Catatan                                   |
 | ------------------- | ---------------------------------- | ----------------------------------------- |

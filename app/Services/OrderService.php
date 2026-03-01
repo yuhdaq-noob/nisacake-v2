@@ -18,13 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
-    /**
-     * Buat order baru dengan validasi dan pengurangan stok (pembelian langsung)
-     * Status langsung menjadi COMPLETED karena pesanan dibuat dan dikonfirmasi segera
-     *
-     * @throws InsufficientStockException
-     * @throws MaterialNotFoundException
-     */
+    /** @throws InsufficientStockException|MaterialNotFoundException */
     public function createOrder(array $data): Order
     {
         $totalNeeds = $this->calculateTotalNeeds($data['items']);
@@ -33,14 +27,9 @@ class OrderService
         return $this->createOrderWithValidation($data, $totalNeeds, $shouldDeductStock, OrderStatus::COMPLETED);
     }
 
-    /**
-     * Buat pre-order tanpa pengurangan stok (pembelian terjadwal)
-     *
-     * @throws MaterialNotFoundException
-     */
+    /** @throws MaterialNotFoundException */
     public function createPreOrder(array $data): Order
     {
-        // Pre-order tidak perlu validasi stok, hanya validasi bahwa produk ada
         $this->validateProductsExist($data['items']);
 
         $totalNeeds = $this->calculateTotalNeeds($data['items']);
@@ -49,13 +38,7 @@ class OrderService
         return $this->createOrderWithValidation($data, $totalNeeds, $shouldDeductStock, OrderStatus::PRE_ORDER);
     }
 
-    /**
-     * Metode internal untuk membuat order dengan opsi pengurangan stok
-     * Mengikuti prinsip Single Responsibility: menangani logika pembuatan order dan item
-     *
-     * @throws InsufficientStockException
-     * @throws MaterialNotFoundException
-     */
+    /** @throws InsufficientStockException|MaterialNotFoundException */
     private function createOrderWithValidation(
         array $data,
         array $totalNeeds,
@@ -67,7 +50,6 @@ class OrderService
         return DB::transaction(function () use ($data, $totalNeeds, $materialIds, $shouldDeductStock, $status) {
             $materials = collect();
 
-            // Hanya validasi dan kunci material jika diperlukan pengurangan stok
             if ($shouldDeductStock && count($materialIds) > 0) {
                 $materials = Material::whereIn('id', $materialIds)
                     ->lockForUpdate()
@@ -77,10 +59,8 @@ class OrderService
                 $this->validateStockAvailability($materials, $totalNeeds);
             }
 
-            // Hitung data item order (harga, HPP)
             [$totalPrice, $totalHPP, $orderItemsData] = $this->calculateOrderItemsData($data, $materials);
 
-            // Buat entri order
             $order = Order::create([
                 'customer_name' => $data['customer_name'],
                 'order_date' => now(),
@@ -90,7 +70,6 @@ class OrderService
                 'scheduled_at' => $data['scheduled_at'] ?? null,
             ]);
 
-            // Buat entri item order
             foreach ($orderItemsData as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
@@ -101,12 +80,10 @@ class OrderService
                 ]);
             }
 
-            // Kurangi stok hanya jika ini order langsung
             if ($shouldDeductStock) {
                 $this->deductStockForOrder($data, $materials);
             }
 
-            // Catat pembuatan order ke log bisnis
             Log::channel('business')->info('Order created', [
                 'order_id' => $order->id,
                 'customer_name' => $order->customer_name,
@@ -119,22 +96,13 @@ class OrderService
         });
     }
 
-    /**
-     * Eksekusi pre-order: ubah status PRE_ORDER ke COMPLETED dengan pengurangan stok
-     * Dipanggil ketika pengguna menekan "Bayar" pada pesanan terjadwal
-     *
-     * @throws InsufficientStockException
-     * @throws MaterialNotFoundException
-     */
+    /** @throws InsufficientStockException|MaterialNotFoundException */
     public function executePreOrder(Order $preOrder): Order
     {
-        // Validasi bahwa order memang pre-order
-        // Status di-cast ke enum OrderStatus, bandingkan dengan enum, bukan string
         if ($preOrder->status !== OrderStatus::PRE_ORDER) {
             throw new \InvalidArgumentException('Only pre-orders can be executed.');
         }
 
-        // Bangun array item dari order items (pastikan relasi items sudah dimuat)
         if (!$preOrder->relationLoaded('items')) {
             $preOrder->load('items');
         }
@@ -144,14 +112,12 @@ class OrderService
             'quantity' => $item->quantity,
         ])->toArray();
 
-        // Hitung kebutuhan material untuk validasi stok
         $totalNeeds = $this->calculateTotalNeeds($items);
         $materialIds = array_keys($totalNeeds);
 
         return DB::transaction(function () use ($preOrder, $items, $totalNeeds, $materialIds) {
             $materials = collect();
 
-            // Validasi dan kunci material untuk pengurangan stok
             if (count($materialIds) > 0) {
                 $materials = Material::whereIn('id', $materialIds)
                     ->lockForUpdate()
@@ -161,16 +127,13 @@ class OrderService
                 $this->validateStockAvailability($materials, $totalNeeds);
             }
 
-            // Perbarui status order dari PRE_ORDER ke COMPLETED
             $preOrder->status = OrderStatus::COMPLETED;
             $preOrder->order_date = now();
             $preOrder->save();
 
-            // Kurangi stok sekarang setelah order dikonfirmasi
             $this->deductStockForOrder(['items' => $items], $materials);
 
-            // Catat konversi pre-order ke completed di log bisnis
-            Log::channel('business')->info('Pre-order executed and converted to completed', [
+            Log::channel('business')->info('Pre-order executed', [
                 'order_id' => $preOrder->id,
                 'customer_name' => $preOrder->customer_name,
                 'total_price' => $preOrder->total_price,
@@ -180,10 +143,7 @@ class OrderService
         });
     }
 
-    /**
-     * Hitung data item order (total dan informasi per-item)
-     * Mengikuti Single Responsibility: hanya menangani perhitungan harga/HPP
-     */
+    /** Hitung total price, HPP, dan data item order */
     private function calculateOrderItemsData(array $data, Collection $materials): array
     {
         $totalPrice = 0;
@@ -211,10 +171,7 @@ class OrderService
         return [$totalPrice, $totalHPP, $orderItemsData];
     }
 
-    /**
-     * Kurangi stok pada material
-     * Mengikuti Single Responsibility: hanya menangani logika pengurangan stok
-     */
+    /** Kurangi stok material */
     private function deductStockForOrder(array $data, Collection $materials): void
     {
         foreach ($data['items'] as $item) {
@@ -225,10 +182,8 @@ class OrderService
                     $qtyNeeded = $material->pivot->quantity_needed * $item['quantity'];
                     $lockedMaterial = $materials->get($material->id) ?? $material;
 
-                    // Kurangi jumlah stok
                     $lockedMaterial->decrement('current_stock', $qtyNeeded);
 
-                    // Catat pengurangan stok
                     StockLog::create([
                         'material_id' => $material->id,
                         'type' => StockLogType::OUT->value,
@@ -240,11 +195,7 @@ class OrderService
         }
     }
 
-    /**
-     * Validasi bahwa semua produk di items ada
-     *
-     * @throws MaterialNotFoundException
-     */
+    /** @throws MaterialNotFoundException */
     private function validateProductsExist(array $items): void
     {
         foreach ($items as $item) {
@@ -254,9 +205,7 @@ class OrderService
         }
     }
 
-    /**
-     * Hitung HPP real-time dari BOM dan harga material saat ini
-     */
+    /** Hitung HPP real-time dari BOM dan harga material */
     private function calculateRealTimeHPP(Product $product, int $quantity): float
     {
         $materialHppPerUnit = 0.0;
@@ -268,9 +217,6 @@ class OrderService
             $materialHppPerUnit += $quantityNeeded * $currentPrice;
         }
 
-        // Hitung overhead per unit
-        // Jika produk memiliki overhead_cost_per_unit > 0, gunakan sebagai override per produk.
-        // Jika tidak, gunakan konfigurasi global dari tabel overhead_settings.
         $overheadPerUnit = (float) ($product->overhead_cost_per_unit ?? 0);
 
         if ($overheadPerUnit <= 0) {
@@ -282,9 +228,7 @@ class OrderService
         return $hppPerUnit * $quantity;
     }
 
-    /**
-     * Hitung total kebutuhan material untuk semua item
-     */
+    /** Hitung total kebutuhan material untuk item */
     private function calculateTotalNeeds(array $items): array
     {
         $totalNeeds = [];
@@ -309,12 +253,7 @@ class OrderService
         return $totalNeeds;
     }
 
-    /**
-     * Validasi ketersediaan stok untuk semua material
-     *
-     * @throws InsufficientStockException
-     * @throws MaterialNotFoundException
-     */
+    /** @throws InsufficientStockException|MaterialNotFoundException */
     private function validateStockAvailability(Collection $materials, array $totalNeeds): void
     {
         foreach ($totalNeeds as $materialId => $qtyNeeded) {

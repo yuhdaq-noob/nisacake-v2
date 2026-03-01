@@ -10,9 +10,6 @@ class MasterDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Isi data master: materials, products, product_materials
-
-        // Data bahan mentah (harga per unit kecil: gram / ml / butir)
         $rawMaterials = [
             [
                 'id' => 1,

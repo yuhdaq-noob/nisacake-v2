@@ -5,15 +5,14 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Periksa apakah aplikasi sedang dalam mode pemeliharaan...
+// Mode maintenance
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
-// Daftarkan autoloader Composer...
+// Autoloader Composer
 require __DIR__.'/../vendor/autoload.php';
 
-// Bootstrapping Laravel dan tangani permintaan...
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 

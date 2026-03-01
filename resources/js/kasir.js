@@ -233,23 +233,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         "btnTestTelegramKasir",
     );
     if (btnTestTelegramKasir) {
+        console.log("Test Telegram button found, attaching event listener");
         btnTestTelegramKasir.addEventListener("click", async () => {
-            const confirmSend = await confirmDialog({
-                title: "Kirim Tes Telegram",
-                message: "Kirim pesan tes ke Telegram sekarang?",
-                type: "info",
-                confirmText: "Kirim",
-                cancelText: "Batal",
-            });
-            if (!confirmSend) return;
-
-            btnTestTelegramKasir.disabled = true;
+            console.log("Test Telegram button clicked");
             try {
+                const confirmSend = await confirmDialog({
+                    title: "Kirim Tes Telegram",
+                    message: "Kirim pesan tes ke Telegram sekarang?",
+                    type: "info",
+                    confirmText: "Kirim",
+                    cancelText: "Batal",
+                });
+                console.log("Confirm result:", confirmSend);
+                if (!confirmSend) {
+                    console.log("User cancelled");
+                    return;
+                }
+
+                btnTestTelegramKasir.disabled = true;
+                let originalBtnText = btnTestTelegramKasir.innerHTML;
+                btnTestTelegramKasir.innerHTML =
+                    '<span class="inline-flex items-center"><i class="bi bi-arrow-repeat icon-spin"></i> Memproses...</span>';
+
+                // Store for use in finally block
+                const storedOriginalText = originalBtnText;
+
+                console.log("Making fetch request to /admin/telegram/test");
                 const res = await fetch("/admin/telegram/test", {
                     method: "GET",
                     headers: { ...getAuthHeaders() },
                 });
+                console.log("Response status:", res.status);
                 const body = await res.json().catch(() => ({}));
+                console.log("Response body:", body);
+
                 if (res.ok) {
                     showSuccess("Cek Telegram Anda.");
                 } else {
@@ -259,12 +276,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                     );
                 }
             } catch (err) {
-                console.error(err);
-                showErrorToast("Terjadi kesalahan saat mengirim test.");
+                console.error("Error in Telegram test:", err);
+                showErrorToast(
+                    "Terjadi kesalahan saat mengirim test: " + err.message,
+                );
             } finally {
                 btnTestTelegramKasir.disabled = false;
+                btnTestTelegramKasir.innerHTML =
+                    storedOriginalText || btnTestTelegramKasir.innerHTML;
             }
         });
+    } else {
+        console.error("Test Telegram button NOT found!");
     }
 
     // Sync cart height with input card and attach resize handler

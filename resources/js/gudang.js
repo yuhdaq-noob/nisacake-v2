@@ -138,7 +138,6 @@ async function loadMaterials() {
         }
         let materials = await response.json();
 
-        // Tangani respons array atau object dengan properti .data (format Resource)
         if (!Array.isArray(materials)) {
             if (materials.data && Array.isArray(materials.data)) {
                 materials = materials.data;
