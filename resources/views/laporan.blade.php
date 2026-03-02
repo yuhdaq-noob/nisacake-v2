@@ -123,23 +123,19 @@
                     <tbody id="tabelLaporan">
                         <tr><td colspan="7" class="text-center py-6 text-slate-400">Memuat data...</td></tr>
                     </tbody>
+                    <tfoot class="sticky bottom-0 z-10">
+                        <tr class="font-bold border-t border-slate-700 bg-slate-800/95 backdrop-blur-sm">
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-slate-100" style="min-width: 50px;"></td>
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-slate-100" style="min-width: 70px;"></td>
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-slate-100 hidden sm:table-cell" style="min-width: 90px;"></td>
+                            <td class="px-3 sm:px-4 py-2 sm:py-3 text-left text-slate-100" style="min-width: 80px;">TOTAL:</td>
+                            <td id="tableTotalOmzet" class="px-3 sm:px-4 py-2 sm:py-3 text-right text-cyan-400 font-bold" style="min-width: 70px;">Rp 0</td>
+                            <td id="tableTotalHPP" class="px-3 sm:px-4 py-2 sm:py-3 text-right text-cyan-400 font-bold hidden sm:table-cell" style="min-width: 70px;">Rp 0</td>
+                            <td id="tableTotalProfit" class="px-3 sm:px-4 py-2 sm:py-3 text-right text-green-400 font-bold" style="min-width: 70px;">Rp 0</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
-        </div>
-        <div class="border-t border-slate-700 bg-slate-800/50 sticky bottom-0 overflow-x-auto">
-            <table class="w-full table-basic text-xs sm:text-sm" style="min-width: 100%;">
-                <tfoot>
-                    <tr class="font-bold">
-                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-slate-100" style="min-width: 50px;"></td>
-                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-slate-100" style="min-width: 70px;"></td>
-                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-slate-100 hidden sm:table-cell" style="min-width: 90px;"></td>
-                        <td class="px-3 sm:px-4 py-2 sm:py-3 text-left text-slate-100" style="min-width: 80px;">TOTAL:</td>
-                        <td id="tableTotalOmzet" class="px-3 sm:px-4 py-2 sm:py-3 text-right text-cyan-400 font-bold" style="min-width: 70px;">Rp 0</td>
-                        <td id="tableTotalHPP" class="px-3 sm:px-4 py-2 sm:py-3 text-right text-cyan-400 font-bold hidden sm:table-cell" style="min-width: 70px;">Rp 0</td>
-                        <td id="tableTotalProfit" class="px-3 sm:px-4 py-2 sm:py-3 text-right text-green-400 font-bold" style="min-width: 70px;">Rp 0</td>
-                    </tr>
-                </tfoot>
-            </table>
         </div>
     </div>
 @endsection
