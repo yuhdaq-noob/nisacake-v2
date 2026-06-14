@@ -12,3 +12,8 @@ Artisan::command('inspire', function () {
 Schedule::command('orders:send-reminders')
         ->dailyAt('18:10')
         ->timezone('Asia/Jakarta');
+
+// Periksa stok menipis setiap 2 jam
+Schedule::command('materials:check-low-stock')
+        ->everyTwoHours()
+        ->timezone('Asia/Jakarta');

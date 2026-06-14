@@ -3,12 +3,12 @@
 @php($active = 'kasir')
 
 @section('content')
-    <div class="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-3">
+<br>
+<div class="grid gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-3">
         <!-- Input Section -->
         <div class="lg:col-span-1">
             <div id="orderInputCard" class="bg-slate-800 shadow-lg rounded-xl border border-slate-700 overflow-hidden sticky top-4">
                 <div class="px-3 sm:px-6 pt-3 sm:pt-5 pb-3 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-700/50">
-                    <p class="text-[0.65rem] sm:text-xs uppercase tracking-widest font-bold text-cyan-400">Pesanan Baru</p>
                     <h3 class="text-base sm:text-xl font-bold text-white mt-1 sm:mt-2">Input Produk</h3>
                 </div>
                 <div class="px-3 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4">
@@ -50,7 +50,6 @@
                 <div class="px-3 sm:px-6 pt-3 sm:pt-5 pb-3 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-700/50">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                            <p class="text-[0.65rem] sm:text-xs uppercase tracking-widest font-bold text-cyan-400">Keranjang</p>
                             <h3 class="text-base sm:text-xl font-bold text-white mt-1 sm:mt-2">Ringkasan belanja</h3>
                         </div>
                         <div class="sm:text-right">
@@ -111,7 +110,6 @@
         <div class="bg-slate-800 shadow-lg rounded-xl border border-slate-700 overflow-hidden">
             <div class="px-3 sm:px-6 pt-3 sm:pt-5 pb-3 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-700/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <p class="text-[0.65rem] sm:text-xs uppercase tracking-widest font-bold text-cyan-400">Jadwal</p>
                     <h3 class="text-base sm:text-xl font-bold text-white mt-1 sm:mt-2">Pesanan Terjadwal</h3>
                 </div>
                 <div class="flex items-center gap-2">

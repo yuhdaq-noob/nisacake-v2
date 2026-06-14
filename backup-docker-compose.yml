@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  app:
+    image: laravelsail/php83-composer
+    container_name: nisacake-app
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=db_nisacake
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+    command: bash -c "composer install && npm install && php artisan key:generate && php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000"
+
+  mysql:
+    image: mysql:8.0
+    container_name: nisacake-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: db_nisacake
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:

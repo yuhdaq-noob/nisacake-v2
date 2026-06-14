@@ -2,25 +2,8 @@
 @php($title = 'Laporan Keuangan')
 @php($active = 'laporan')
 
-{{-- FIXME: PERHITUNGAN --}}
-{{--
-    TODO:TAMBAHKAN KE TABEL MATERIALS DATABASE
-         {
-            KARDUS KUE,
-            MIKA KUE,
-            PLASTIK "termasuk ukuran" nanti pakai id ke untuk di produk sesuai id
-          }
-
-
-    TODO: PISAHKAN CATEGORY PACKAGING DAN RAW MATERIAL DI MATERIALS DATABASE,
-
-    TODO: TAMBAHKAN CARD TABLE OVERHEAD DI LAPORAN,
-
-    TODO: LALU REFACTOR PERHITUNGAN HPP DENGAN RUMUS (BTK BUKAN BTKL)
-
-    --}}
-
 @section('content')
+<br>
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
             <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Laporan</p>
@@ -58,7 +41,6 @@
     <div class="bg-slate-800 rounded-2xl shadow-lg border border-slate-700 mb-6 overflow-hidden flex flex-col">
         <div class="px-5 py-4 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800 z-10">
             <p class="text-sm font-semibold text-white flex items-center gap-2"><i class="bi bi-bar-chart-line-fill text-cyan-400"></i> Grafik Transaksi</p>
-            <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400">Realtime</span>
         </div>
         <div class="p-4 sm:p-5">
             <div class="relative h-[280px] sm:h-[320px] lg:h-[360px] w-full">
@@ -93,15 +75,25 @@
                 </div>
             </div>
             <div class="flex flex-col gap-2 items-stretch">
-                <input type="text" id="searchInput" class="w-full rounded-lg border border-slate-600 bg-slate-700/50 px-3 py-2 text-xs sm:text-sm font-medium text-slate-100 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors placeholder-slate-500" placeholder="Cari pelanggan / produk...">
+                <input
+                type="text"
+                id="searchInput"
+                class="w-full rounded-lg border
+                border-slate-600
+                bg-slate-700/50 px-3 py-2 text-xs sm:text-sm font-medium
+                text-slate-100
+                focus:border-cyan-500 focus:ring-2
+                focus:ring-cyan-500/20 transition-colors
+                placeholder-slate-500"
+                placeholder="Cari pelanggan / produk...">
                 <div class="relative">
                     <select id="filterWaktu" class="filter-select w-full" aria-label="Filter waktu">
-                        <option value="all">📅 Semua Waktu</option>
-                        <option value="today">📆 Hari Ini</option>
-                        <option value="last7">📊 7 Hari Terakhir</option>
-                        <option value="month">📈 Bulan Ini</option>
-                        <option value="last_month">📉 Bulan Lalu</option>
-                        <option value="year">🗓️ Tahun Ini</option>
+                        <option value="all">Semua Waktu</option>
+                        <option value="today">Hari Ini</option>
+                        <option value="last7">7 Hari Terakhir</option>
+                        <option value="month">Bulan Ini</option>
+                        <option value="last_month">Bulan Lalu</option>
+                        <option value="year">Tahun Ini</option>
                     </select>
                 </div>
             </div>

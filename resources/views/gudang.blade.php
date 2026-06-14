@@ -3,6 +3,7 @@
 @php($active = 'gudang')
 
 @section('content')
+<br>
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
             <p class="text-xs uppercase tracking-[0.2em] font-semibold text-slate-400">Inventaris</p>
@@ -38,7 +39,6 @@
                 <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
                     <div class="flex items-center justify-between gap-3">
                         <h5 class="text-sm sm:text-base font-semibold text-white flex items-center gap-2"><i class="bi bi-box-seam-fill text-cyan-400"></i> Stok Fisik Saat Ini</h5>
-                        <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400">Live</span>
                     </div>
                 </div>
                 <div class="flex-1 overflow-x-auto">
@@ -63,7 +63,6 @@
             <div class="bg-slate-800 rounded-2xl shadow-lg border border-slate-700 overflow-hidden flex flex-col mt-4">
                 <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
                     <h5 class="text-sm sm:text-base font-semibold text-white mb-1 flex items-center gap-2"><i class="bi bi-gear-fill text-slate-400"></i> Overhead & Asumsi</h5>
-                    <p class="text-xs text-slate-400">Parameter perhitungan HPP</p>
                 </div>
                 <div class="px-4 sm:px-5 py-3 sm:py-4 overflow-y-auto lg:max-h-[400px]">
                     <table class="w-full table-basic text-xs sm:text-sm">
